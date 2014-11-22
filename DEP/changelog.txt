@@ -1,0 +1,9 @@
+Version 0.1.2
+=============
+* Changed: disable IED animation
+* Changed: DEP init merged into one file
+
+Version 0.1.1
+=============
+* Added: multiple safe zones
+* Changed: different system for placing bunkers

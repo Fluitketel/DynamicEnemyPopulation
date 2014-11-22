@@ -1,0 +1,102 @@
+/*%FSM<COMPILE "C:\Program Files (x86)\Bohemia Interactive\Tools\FSM Editor Personal Edition\scriptedFSM.cfg, ied sensor">*/
+/*%FSM<HEAD>*/
+/*
+item0[] = {"init",0,250,-177.107040,-235.367874,-142.625412,-212.792648,0.000000,"init"};
+item1[] = {"sensor_active",4,4314,-194.983292,-51.839462,-125.050171,-17.224102,1.000000,"sensor" \n "active"};
+item2[] = {"defused",4,218,43.143814,-248.494980,115.083618,-201.839462,99.000000,"defused"};
+item3[] = {"exit",1,250,59.866234,-50.501656,99.699043,-19.899666,0.000000,"exit"};
+link0[] = {0,1};
+link1[] = {0,2};
+link2[] = {1,3};
+link3[] = {2,3};
+globals[] = {0.000000,0,0,0,0,640,480,1,8,6316128,1,-300.000000,300.000000,300.000000,-300.000000,832,765,1};
+window[] = {0,-1,-1,-1,-1,960,50,1639,50,1,850};
+*//*%FSM</HEAD>*/
+class FSM
+{
+  fsmName = "ied sensor";
+  class States
+  {
+    /*%FSM<STATE "init">*/
+    class init
+    {
+      name = "init";
+      init = /*%FSM<STATEINIT""">*/"_ied = _this;" \n
+       "" \n
+       "_detonate = false;"/*%FSM</STATEINIT""">*/;
+      precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
+      class Links
+      {
+        /*%FSM<LINK "defused">*/
+        class defused
+        {
+          priority = 99.000000;
+          to="exit";
+          precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+          condition=/*%FSM<CONDITION""">*/"isNull _ied || not alive _ied || !(_ied getVariable ""IED"")"/*%FSM</CONDITION""">*/;
+          action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+        };
+        /*%FSM</LINK>*/
+        /*%FSM<LINK "sensor_active">*/
+        class sensor_active
+        {
+          priority = 1.000000;
+          to="exit";
+          precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+          condition=/*%FSM<CONDITION""">*/"_blowit = false;" \n
+           "" \n
+           "if  !(isNull _ied) then {" \n
+           "	_units = nearestObjects [_ied,[""Car"",""Tank"", ""Man""],8];" \n
+           "" \n
+           "	{" \n
+           "		if({isPlayer _x} count crew _x > 0) then{_blowit = true}" \n
+           "	} foreach _units;" \n
+           "};" \n
+           "" \n
+           "" \n
+           "if(_blowit) then {" \n
+           "	_detonate = true;" \n
+           "	true" \n
+           "} else {" \n
+           "	false" \n
+           "}"/*%FSM</CONDITION""">*/;
+          action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+        };
+        /*%FSM</LINK>*/
+      };
+    };
+    /*%FSM</STATE>*/
+    /*%FSM<STATE "exit">*/
+    class exit
+    {
+      name = "exit";
+      init = /*%FSM<STATEINIT""">*/"if(_detonate) then{" \n
+       "" \n
+       "	_ied spawn {" \n
+       "" \n
+       "		sleep (0.25 + random 0.5);" \n
+       "" \n
+       "		_boomtype = [""Bomb_03_F"", ""Bomb_04_F"", ""Bo_GBU12_LGB""] select round random 2;" \n
+       "		_boomtype createVehicle position _this;" \n
+       "" \n
+       "		{_x setdamage 1} foreach (crew _this) + [_this];" \n
+       "		sleep 1;" \n
+       "		deleteVehicle _this;" \n
+       "" \n
+       "	};" \n
+       "" \n
+       "};"/*%FSM</STATEINIT""">*/;
+      precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
+      class Links
+      {
+      };
+    };
+    /*%FSM</STATE>*/
+  };
+  initState="init";
+  finalStates[] =
+  {
+    "exit",
+  };
+};
+/*%FSM</COMPILE>*/

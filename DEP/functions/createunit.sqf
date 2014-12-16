@@ -24,8 +24,12 @@ _pos    = _this select 2;
 _unit = _group createUnit [_type, _pos, [], 0, "NONE"];
 waitUntil{alive _unit};
 
+_unit removeEventHandler ["killed", 0];
+_unit addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
+
 if (dep_unit_init != "") then {
     _unit spawn (compile dep_unit_init);
 };
 
+sleep 0.1; 
 _unit;

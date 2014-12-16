@@ -28,13 +28,13 @@ _objects = [];
 _center = "Box_East_AmmoVeh_F" createVehicle _pos;
 _center setDir _dir;
 
-_newpos = [_center, 8, _dir] call BIS_fnc_relPos;
+/*_newpos = [_center, 8, _dir] call BIS_fnc_relPos;
 _prop = (["Land_i_Stone_Shed_V1_F", "Land_Cargo_House_V1_F", "Land_Cargo_House_V2_F", "Land_Cargo_House_V3_F"] call BIS_fnc_selectRandom) createVehicle _newpos;
 _prop setDir _dir;
 
 _newpos = [_prop, 3, (_dir + 270)] call BIS_fnc_relPos;
 _prop = (["Land_FieldToilet_F", "Land_LampShabby_F"] call BIS_fnc_selectRandom) createVehicle _newpos;
-_prop setDir _dir;
+_prop setDir _dir;*/
 
 _newpos = [_center, 7, (_dir + 45)] call BIS_fnc_relPos;
 _prop = "Land_PowerGenerator_F" createVehicle _newpos;
@@ -67,7 +67,7 @@ _newpos = [_center, 10, (_dir + 200)] call BIS_fnc_relPos;
 _prop = (["Land_Cargo20_military_green_F", "Land_Cargo20_grey_F", "Land_Cargo20_sand_F"] call BIS_fnc_selectRandom) createVehicle _newpos;
 _prop setDir (_dir + 15);
 
-if ((round random 1) < 0.5) then {
+if ((round random 1) < 0.7) then {
     _mortardefgroup = createGroup dep_side;
     _groups = _groups + [_mortardefgroup];
     _mortardefgroup setFormDir _dir;
@@ -91,8 +91,22 @@ for "_c" from 1 to _amountofmortars do {
     _mortar = "I_G_Mortar_01_F" createVehicle _newpos;
     _objects = _objects + [_mortar];
     _mortar setDir _newdir;
-    _mortar addEventHandler["Fired",{if (!isPlayer (gunner _mortar)) then { _mortar setVehicleAmmo 1; };}];
-    _mortar addEventHandler["GetIn",{if (isPlayer (gunner _mortar)) then { _mortar setVehicleAmmo 0; };}];
+    if (dep_allow_mortars) then
+    {
+        _mortar addEventHandler["Fired", {if (!isPlayer (gunner (_this select 0))) then { (_this select 0) setVehicleAmmo 1; };}];
+    } else {
+        _mortar addEventHandler["Fired", {
+            if (isPlayer (gunner (_this select 0))) then {  
+                (_this select 0) setDamage 1; 
+                deleteVehicle (_this select 6);
+                "M_NLAW_AT_F" createVehicle (position (_this select 0));
+            } else {
+                (_this select 0) setVehicleAmmo 1;
+            };
+        }];
+        // This will work once BIS fix the eventhandler for remote objects http://feedback.arma3.com/view.php?id=21308
+        _mortar addEventHandler["WeaponDisassembled", { deleteVehicle (_this select 1); deleteVehicle (_this select 2); }];
+    };
     _soldier = [_mortargroup, dep_u_g_soldier, _pos] call dep_fnc_createunit;
     _totalenemies = _totalenemies + 1;
     _soldier assignAsGunner _mortar;

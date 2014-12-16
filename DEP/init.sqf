@@ -24,12 +24,17 @@ if (count _this > 0) then {
     dep_directory = "DEP\";
 };
 
-if (isServer) then 
+dep_ishostedserver = if (isServer && !isDedicated) then {true} else {false};
+dep_isserver = if (isDedicated || dep_ishostedserver) then {true} else {false};
+dep_isclient = if ((dep_ishostedserver || !isDedicated) && (hasInterface)) then {true} else {false};
+dep_isheadless = if !(hasInterface || isDedicated) then {true} else {false};
+
+if (dep_isserver || dep_ishostedserver || dep_isheadless) then 
 {
     [] execVM dep_directory+"init\server_init.sqf"; 
 };
 
-if (isPlayer player) then 
+if (dep_isclient) then 
 {
     [] execVM dep_directory+"init\client_init.sqf"; 
 };

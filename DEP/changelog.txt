@@ -1,3 +1,22 @@
+Version 0.1.6
+=============
+* Changed: improved AI and groups counter
+* Added: optionally restrict players from using mortars
+
+Version 0.1.5
+=============
+* Added: proper crew for armored vehicles
+* Added: chances to spawn specific types of units instead of just random
+
+Version 0.1.4
+=============
+* Added: headless client support
+* Fixed: restore gunner positions because BIS changed something again
+
+Version 0.1.3
+=============
+* Changed: bunkers are spread out more
+
 Version 0.1.2
 =============
 * Changed: disable IED animation

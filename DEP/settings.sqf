@@ -35,6 +35,9 @@
 // dep_ied_chance  = 0.7;                          // Chance of IEDs
 // dep_veh_chance  = 0.3;                          // Chance of vehicles
 // dep_cr_ied      = true;                         // Restrict disarming IED to explosives class
+// dep_unit_init   = "";                           // Code to execute on every spawned unit's init
+// dep_useheadless = false;                        // When true DEP is ran on the Headless Client instead of the server
+// dep_allow_mortars = true;                       // When false stops players from using mortars spawned by DEP
 
 // Military forces
 // dep_u_soldier       = "I_soldier_F";        // Soldier

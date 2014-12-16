@@ -14,16 +14,15 @@
     You should have received a copy of the GNU General Public License
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
+ 
+// SETTINGS
+_handle = [] execVM dep_directory+"settings.sqf";
+waitUntil{scriptDone _handle};
 
  if !(isClass(configFile>>"CfgPatches">>"cba_main_a3")) exitWith 
  {
     diag_log "DEP INIT FAILED: CBA NOT FOUND";
  };
-  
-// SETTINGS
-//dep_directory = "scripts\DEP\";   // Script location
-_handle = [] execVM dep_directory+"settings.sqf";
-waitUntil{scriptDone _handle};
 
 // PUBLIC VARIABLES
 dep_total_ai    = 0;
@@ -35,22 +34,27 @@ dep_num_loc     = 0;
 dep_act_bl      = [];
 dep_veh_pat_rad = 600;
 dep_allgroups   = [];
+dep_exceeded_ai_limit       = false;
+dep_exceeded_group_limit    = false;
 
-if (isNil "dep_side")           then { dep_side         = independent; };   // Enemy side (east, west, independent)
-if (isNil "dep_despawn")        then { dep_despawn      = 5; };             // Despawn location after x minutes inactivity
-if (isNil "dep_debug")          then { dep_debug        = false; };         // Enable debug
-if (isNil "dep_max_ai_loc")     then { dep_max_ai_loc   = 14; };            // Maximum AI per location
-if (isNil "dep_max_ai_tot")     then { dep_max_ai_tot   = 400; };           // Maximum AI in total
-if (isNil "dep_act_dist")       then { dep_act_dist     = 800; };           // Location activation distance
-if (isNil "dep_act_height")     then { dep_act_height   = 80; };            // Player must be below this height to activate location
-if (isNil "dep_act_speed")      then { dep_act_speed    = 160; };           // Player must be below this speed to activate location
-if (isNil "dep_safe_zone")      then { dep_safe_zone    = [];  };           // Safe zone position
-if (isNil "dep_safe_rad")       then { dep_safe_rad     = 800; };           // Safe zone radius
-if (isNil "dep_max_veh")        then { dep_max_veh      = 10; };            // Max number of vehicles
-if (isNil "dep_ied_chance")     then { dep_ied_chance   = 0.6; };           // Chance of IEDs
-if (isNil "dep_veh_chance")     then { dep_veh_chance   = 0.3; };           // Chance of vehicles
-if (isNil "dep_unit_init")      then { dep_unit_init    = ""; };            // Code executed on unit creation
-if (isNil "dep_cr_ied")         then { dep_cr_ied       = false; };         // Restrict disarming IED to explosives class
+if (isNil "dep_side")           then { dep_side             = independent; };   // Enemy side (east, west, independent)
+if (isNil "dep_despawn")        then { dep_despawn          = 5; };             // Despawn location after x minutes inactivity
+if (isNil "dep_debug")          then { dep_debug            = false; };         // Enable debug
+if (isNil "dep_max_ai_loc")     then { dep_max_ai_loc       = 14; };            // Maximum AI per location
+if (isNil "dep_max_ai_tot")     then { dep_max_ai_tot       = 400; };           // Maximum AI in total
+if (isNil "dep_act_dist")       then { dep_act_dist         = 800; };           // Location activation distance
+if (isNil "dep_act_height")     then { dep_act_height       = 80; };            // Player must be below this height to activate location
+if (isNil "dep_act_speed")      then { dep_act_speed        = 160; };           // Player must be below this speed to activate location
+if (isNil "dep_safe_zone")      then { dep_safe_zone        = [];  };           // Safe zone position
+if (isNil "dep_safe_rad")       then { dep_safe_rad         = 800; };           // Safe zone radius
+if (isNil "dep_max_veh")        then { dep_max_veh          = 10; };            // Max number of vehicles
+if (isNil "dep_ied_chance")     then { dep_ied_chance       = 0.6; };           // Chance of IEDs
+if (isNil "dep_veh_chance")     then { dep_veh_chance       = 0.3; };           // Chance of vehicles
+if (isNil "dep_unit_init")      then { dep_unit_init        = ""; };            // Code executed on unit creation
+if (isNil "dep_cr_ied")         then { dep_cr_ied           = false; };         // Restrict disarming IED to explosives class
+if (isNil "dep_useheadless")    then { dep_useheadless      = false; };         // Load DEP on a headless client
+if (isNil "dep_civilians")      then { dep_civilians        = false; };         // Place civilians on the map
+if (isNil "dep_allow_mortars")  then { dep_allow_mortars    = true; };        // Allow players to use mortars
 
 if (isNil "dep_u_g_soldier")    then { dep_u_g_soldier  = "I_G_Soldier_F"; };
 if (isNil "dep_u_g_gl")         then { dep_u_g_gl       = "I_G_Soldier_GL_F"; };
@@ -70,20 +74,58 @@ if (isNil "dep_u_aaa")          then { dep_u_aaa        = "I_Soldier_AAA_F"; };
 if (isNil "dep_u_sl")           then { dep_u_sl         = "I_Soldier_SL_F"; };
 if (isNil "dep_u_marksman")     then { dep_u_marksman   = "I_soldier_M_F"; };
 if (isNil "dep_u_sniper")       then { dep_u_sniper     = "I_Sniper_F"; };
+if (isNil "dep_u_veh_cmnd")       then { dep_u_veh_cmnd     = "I_officer_F"; };
+if (isNil "dep_u_veh_crew")       then { dep_u_veh_crew     = "I_crew_F"; };
 
-if (isNil "dep_mil_units")          then { dep_mil_units        = [dep_u_soldier, dep_u_gl, dep_u_ar, dep_u_at, dep_u_medic, dep_u_aa, dep_u_sl, dep_u_marksman, dep_u_sniper]; };
-if (isNil "dep_guer_units")         then { dep_guer_units       = [dep_u_g_soldier, dep_u_g_gl, dep_u_g_ar, dep_u_g_at, dep_u_g_medic, dep_u_g_sl, dep_u_g_marksman]; };
+dep_unit_rare = 1;
+dep_unit_low = 3;
+dep_unit_med = 6;
+dep_unit_high = 10;
+if (isNil "dep_mil_units") then 
+{ 
+    dep_mil_units = [];
+    for [{_x=1}, {_x<=dep_unit_high}, {_x=_x+1}] do { dep_mil_units = dep_mil_units + [dep_u_soldier]; };
+    for [{_x=1}, {_x<=dep_unit_med}, {_x=_x+1}] do { dep_mil_units = dep_mil_units + [dep_u_gl]; };
+    for [{_x=1}, {_x<=dep_unit_med}, {_x=_x+1}] do { dep_mil_units = dep_mil_units + [dep_u_ar]; };
+    for [{_x=1}, {_x<=dep_unit_med}, {_x=_x+1}] do { dep_mil_units = dep_mil_units + [dep_u_at]; };
+    for [{_x=1}, {_x<=dep_unit_low}, {_x=_x+1}] do { dep_mil_units = dep_mil_units + [dep_u_medic]; };
+    for [{_x=1}, {_x<=dep_unit_med}, {_x=_x+1}] do { dep_mil_units = dep_mil_units + [dep_u_aa]; };
+    for [{_x=1}, {_x<=dep_unit_low}, {_x=_x+1}] do { dep_mil_units = dep_mil_units + [dep_u_sl]; };
+    for [{_x=1}, {_x<=dep_unit_low}, {_x=_x+1}] do { dep_mil_units = dep_mil_units + [dep_u_marksman]; };
+    for [{_x=1}, {_x<=dep_unit_rare}, {_x=_x+1}] do { dep_mil_units = dep_mil_units + [dep_u_sniper]; };
+};
+
+if (isNil "dep_guer_units") then 
+{ 
+    dep_guer_units = [];
+    for [{_x=1}, {_x<=dep_unit_high}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_soldier]; };
+    for [{_x=1}, {_x<=dep_unit_low}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_gl]; };
+    for [{_x=1}, {_x<=dep_unit_med}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_ar]; };
+    for [{_x=1}, {_x<=dep_unit_med}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_at]; };
+    for [{_x=1}, {_x<=dep_unit_low}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_medic]; };
+    for [{_x=1}, {_x<=dep_unit_low}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_sl]; };
+    for [{_x=1}, {_x<=dep_unit_rare}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_marksman]; };
+};
 if (isNil "dep_ground_vehicles")    then { dep_ground_vehicles  = ["I_MRAP_03_hmg_F","I_MRAP_03_gmg_F","I_APC_tracked_03_cannon_F","I_G_Van_01_transport_F","I_APC_Wheeled_03_cannon_F","I_G_offroad_01_armed_F"]; };
+
+if (dep_isheadless && !dep_useheadless) exitWith
+{
+    diag_log "DEP is not using the headless client!";
+};
+if ((dep_ishostedserver || dep_isserver) && dep_useheadless) exitWith
+{
+    diag_log "DEP is not being ran by the server because it's ran by the headless client!";
+};
 
 // World specific settings
 switch (worldName) do {
     case "Altis": {
         if (isNil "dep_map_center") then { dep_map_center  = [15360, 15360]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 250; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 50; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 30; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 60; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 50; };
+        if (isNil "dep_housepop")   then { dep_housepop    = 160; };
+        if (isNil "dep_roadblocks") then { dep_roadblocks  = 30; };
+        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 25; };
+        if (isNil "dep_patrols")    then { dep_patrols     = 40; };
+        if (isNil "dep_bunkers")    then { dep_bunkers     = 40; };
     };
     case "Stratis": {
         if (isNil "dep_map_center") then { dep_map_center  = [4096, 4096]; };
@@ -155,7 +197,7 @@ if (dep_debug) then {
     waitUntil {time > 0};
 };
 
-private ["_locations","_pos","_flatPos","_building"];
+private ["_locations","_pos","_flatPos","_building","_countunits"];
 diag_log "Initializing DEP . . .";
 
 if (dep_debug) then {
@@ -454,33 +496,6 @@ if (dep_debug) then {
 };
 
 // Bunkers
-
-/*_exp = "(1 + meadow) * (1 - forest) * (1 - trees) * (1 - hills) * (1 - houses) * (1 - sea)";
-_bunkers = selectBestPlaces [ dep_map_center, dep_map_radius,_exp, 75, dep_bunkers];
-for [{_x=0}, {_x<(count _bunkers)}, {_x=_x+1}] do {
-    _place = _bunkers select _x;
-    _pos = _place select 0;
-    _safe = [_pos] call dep_fnc_outsidesafezone;
-    if (_safe) then {
-        _flatPos = _pos isFlatEmpty [12, 0, 0.2, 10, 0, false];
-        if (count _flatPos == 3) then {
-            _location = [];
-            _location set [0, _pos];            // position
-            _location set [1, "bunker"];        // location type
-            _location set [2, 50];              // radius
-            _location set [3, false];           // location active
-            _location set [4, []];              // enemy groups
-            _location set [5, 0];               // time last active
-            _location set [6, 0];               // enemy amount
-            _location set [7, false];           // location cleared
-            _location set [8, []];              // objects to cleanup
-            _location set [9, 0];               // possible direction of objects
-            dep_locations = dep_locations + [_location];
-            dep_loc_cache = dep_loc_cache + [[]];
-        };
-    };
-};*/
-
 _fckit = false;
 for [{_x = 0}, {_x < dep_bunkers}, {_x = _x + 1}] do {
     _valid = false;
@@ -493,20 +508,28 @@ for [{_x = 0}, {_x < dep_bunkers}, {_x = _x + 1}] do {
         if (_safe) then {
             _flatPos = _pos isFlatEmpty [9, 0, 0.2, 12, 0, false];
             if (count _flatPos == 3) then {
-                _location = [];
-                _location set [0, _pos];            // position
-                _location set [1, "bunker"];        // location type
-                _location set [2, 50];              // radius
-                _location set [3, false];           // location active
-                _location set [4, []];              // enemy groups
-                _location set [5, 0];               // time last active
-                _location set [6, 0];               // enemy amount
-                _location set [7, false];           // location cleared
-                _location set [8, []];              // objects to cleanup
-                _location set [9, 0];               // possible direction of objects
-                dep_locations = dep_locations + [_location];
-                dep_loc_cache = dep_loc_cache + [[]];
-                _valid = true;
+                _distance = true;
+                {
+                    _loc_pos    = _x select 0;
+                    _radius     = _x select 2;
+                    if ((_pos distance _loc_pos) < 400) exitWith { _distance = false; };
+                } foreach dep_locations;
+                if (_distance) then {
+                    _location = [];
+                    _location set [0, _pos];            // position
+                    _location set [1, "bunker"];        // location type
+                    _location set [2, 50];              // radius
+                    _location set [3, false];           // location active
+                    _location set [4, []];              // enemy groups
+                    _location set [5, 0];               // time last active
+                    _location set [6, 0];               // enemy amount
+                    _location set [7, false];           // location cleared
+                    _location set [8, []];              // objects to cleanup
+                    _location set [9, 0];               // possible direction of objects
+                    dep_locations = dep_locations + [_location];
+                    dep_loc_cache = dep_loc_cache + [[]];
+                    _valid = true;
+                };
             };
         };
     };
@@ -542,7 +565,7 @@ if (dep_debug) then {
             case "bunker":          { _m setMarkerColor "ColorBrown";};
         };
         _m setMarkerBrush "Solid";
-        //_m setMarkerAlpha 0.7;
+        _m setMarkerAlpha 0.7;
     };
 };
 
@@ -554,29 +577,11 @@ dep_num_loc = (count dep_locations);
 diag_log format ["DEP ready with %1 locations", dep_num_loc];
 dep_ready = true;
 publicVariable "dep_ready";
+
+_countunits = false;
 while {true} do {
     waitUntil{!dep_spawning};
     
-    dep_allgroups = [];
-    {
-        if (side _x == dep_side) then { dep_allgroups = dep_allgroups + [_x]; };
-    } forEach allGroups;
-    
-    dep_total_ai = 0;
-    for "_g" from 0 to (dep_num_loc - 1) do {
-        _location = dep_locations select _g;
-        _groups = _location select 4;
-        _alive = 0;
-        {
-            _grp = _x;
-            {
-                if (!isNull _x) then {
-                    if (alive _x) then { _alive = _alive + 1; };
-                };
-            } foreach (units _grp);
-        } foreach _groups;
-        dep_total_ai = dep_total_ai + _alive;
-    };
     for "_g" from 0 to (dep_num_loc - 1) do {
         _location   = dep_locations select _g;
         _pos        = _location select 0;
@@ -660,22 +665,20 @@ while {true} do {
         
         if (_close && !_clear) then {
             // Players are close and location not clear, should enemies be spawned?
-            if (count dep_allgroups <= 134) then {
-                // Group limit not reached
-                if (!_active && dep_total_ai < dep_max_ai_tot && !_tooclose) then {
+            if (!dep_exceeded_group_limit && !dep_exceeded_ai_limit) then {
+                if (!_active && !_tooclose) then {
                     // Location is not cleared and not active => spawn units
                     if (_type == "antiair") then {
                         _handle = _g call dep_fnc_activate_aacamp;
                     } else {
                         _handle = _g call dep_fnc_activate;
                     };
+                    _countunits = true;
                 };
-                _time = time;
-                _location set [5, _time];
-                dep_locations set [_g, _location];
-            } else {
-                diag_log format ["Group limit of 134 reached: %1. Location %2 skipped.", count dep_allgroups, _g];
             };
+            _time = time;
+            _location set [5, _time];
+            dep_locations set [_g, _location];
         } else {
             // No players close to location, should it be deactivated?
             if (_active) then {
@@ -683,25 +686,46 @@ while {true} do {
                 if ((_clear && (time - _time) > (60 * dep_despawn)) || (!_clear && (time - _time) > (60 * (dep_despawn / 2))) ) then {
                     // Deactivate the location
                     _handle = _g call dep_fnc_deactivate;
+                    _countunits = true;
                 };
+            };
+        };
+        
+        if (_countunits) then
+        {
+            dep_allgroups = [];
+            dep_total_ai = 0;
+            {
+                if (side _x == dep_side) then { 
+                    dep_allgroups = dep_allgroups + [_x];
+                    _grp = _x;
+                    {
+                        if (!isNull _x) then {
+                            if (alive _x) then { dep_total_ai = dep_total_ai + 1; };
+                        };
+                    } foreach (units _grp);
+                };
+            } forEach allGroups;
+            //diag_log format ["Total AI: %1 Total groups %2", dep_total_ai, (count dep_allgroups)];
+            _countunits = false;
+            
+            if (dep_total_ai >= dep_max_ai_tot) then {
+                dep_exceeded_ai_limit = true;
+                diag_log format ["AI limit of %1 reached!", dep_max_ai_tot, dep_total_ai];
+            } else {
+                dep_exceeded_ai_limit = false;
+            };
+            if (count dep_allgroups >= 134) then {
+                dep_exceeded_group_limit = true;
+                diag_log "Group limit of 134 reached!";
+            } else {
+                dep_exceeded_group_limit = false;
             };
         };
         sleep 0.02;
     };
     
     _fps = diag_fps;
-    if (dep_debug) then {
-        _west = 0;
-        _east = 0;
-        _resi = 0;
-        {
-            if (side _x == east) then { _east = _east + 1; };
-            if (side _x == west) then { _west = _west + 1; };
-            if (side _x == resistance) then { _resi = _resi + 1; };
-        } forEach allUnits;
-        
-        //systemChat format ["west: %1 east: %2 resistance: %3 FPS: %4", _west, _east, _resi, _fps];
-    };
     if (_fps > 45) then {
         sleep 1;
     } else {

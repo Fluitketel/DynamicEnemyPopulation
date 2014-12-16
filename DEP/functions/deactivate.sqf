@@ -34,6 +34,7 @@ if (!(_location select 7)) then {
                 _loccacheitem set [1, direction _obj];            // Direction
                 _loccacheitem set [2, typeOf _obj];               // Kind
                 _loccacheitem set [3, damage _obj];               // Health
+                
                 _crew = [];
                 {
                     _unit = _x;

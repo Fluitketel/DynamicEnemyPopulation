@@ -131,6 +131,49 @@ if !((_location select 1) in ["patrol","bunker","roadblock"]) then {
         [_depgroup] spawn dep_fnc_enemyspawnprotect;
         sleep 0.02;
     };
+    
+    if (dep_civilians) then
+    {
+        civilian setFriend [west, 1];
+        _civgroup = createGroup civilian;
+        for "_e" from 1 to 3 do {
+            _unit = _civgroup createUnit ["C_man_polo_1_F", _pos, [], 0, "NONE"];
+        };
+        _wp = _depgroup addWaypoint [(_pos findEmptyPosition [0, 20]), 0];
+        _wp setWaypointBehaviour "SAFE";
+        _wp setWaypointSpeed "LIMITED";
+        _wp setWaypointFormation "COLUMN";
+        _wp setWaypointTimeOut [10,20,30];
+        _wp setWaypointType "LOITER";
+        [_civgroup, 0] setWaypointLoiterType "CIRCLE";
+        [_civgroup, 0] setWaypointLoiterRadius 100;
+        _wp = _depgroup addWaypoint [(_pos findEmptyPosition [0, 20]), 1];
+        _wp setWaypointBehaviour "SAFE";
+        _wp setWaypointSpeed "LIMITED";
+        _wp setWaypointFormation "COLUMN";
+        _wp setWaypointType "CYCLE";
+        
+        for "_o" from 1 to 4 do {
+            if ((count _validhouses) > 0) then 
+            {
+                _house = _validhouses call BIS_fnc_selectRandom;
+                _validhouses = _validhouses - [_house];
+                _buildpos = _house call dep_fnc_buildingpositions;
+                _civgroup = createGroup civilian;
+                for "_e" from 1 to 3 do {
+                    _newbuildpos = [];
+                    if ((count _buildpos) > 0) then 
+                    {
+                        _newbuildpos = _buildpos call BIS_fnc_selectRandom;
+                        _buildpos = _buildpos - [_newbuildpos];
+                        _unit = _civgroup createUnit ["C_man_polo_1_F", _newbuildpos, [], 0, "NONE"];
+                    };
+                };
+                doStop (units _civgroup);
+                [_civgroup] spawn dep_fnc_enemyspawnprotect;
+            };
+        };
+    };
 };
 
 if (_location select 1 == "military") then {
@@ -191,6 +234,7 @@ if ((_location select 1) in ["patrol"]) then {
     _list = _pos nearRoads dep_veh_pat_rad;
     if (count _list > 10) then {
         _numvehicles = round random (dep_veh_chance * 10);
+        if (_numvehicles < 1) then { _numvehicles = 1; };
         for "_z" from 1 to _numvehicles do {
             if (dep_total_veh < dep_max_veh) then {
                 _road = _list call BIS_fnc_selectRandom;
@@ -203,12 +247,15 @@ if ((_location select 1) in ["patrol"]) then {
                 _depgroup = createGroup dep_side;
                 _groups = _groups + [_depgroup];
                 _units = [];
+                _soldiername = "";
                 if (_vehname in ["I_G_offroad_01_armed_F", "I_G_Van_01_transport_F"]) then {
                     _units = dep_guer_units;
+                    _soldiername = _units call BIS_fnc_selectRandom;
                 } else {
                     _units = dep_mil_units;
+                    _soldiername = dep_u_veh_crew;
                 };
-                _soldiername = _units call BIS_fnc_selectRandom;
+                
                 _soldier = [_depgroup, _soldiername, (getPos _road)] call dep_fnc_createunit;
                 _soldier assignAsDriver _veh;
                 _soldier moveInDriver _veh;
@@ -217,7 +264,11 @@ if ((_location select 1) in ["patrol"]) then {
                 _totalenemies = _totalenemies + 1;
                 _positions = _veh emptyPositions "Gunner";
                 if (_positions > 0) then {
-                    _soldiername = _units call BIS_fnc_selectRandom;
+                    if (_veh isKindOf "Tank") then {
+                        _soldiername = dep_u_veh_crew;
+                    } else {
+                        _soldiername = _units call BIS_fnc_selectRandom;
+                    };
                     _soldier = [_depgroup, _soldiername, (getPos _road)] call dep_fnc_createunit;
                     _soldier assignAsGunner _veh;
                     _soldier moveInGunner _veh;
@@ -226,7 +277,7 @@ if ((_location select 1) in ["patrol"]) then {
                     _totalenemies = _totalenemies + 1;
                 };
                 if (_veh isKindOf "Tank") then {
-                    _soldier = [_depgroup, dep_u_sl, (getPos _road)] call dep_fnc_createunit;
+                    _soldier = [_depgroup, dep_u_veh_cmnd, (getPos _road)] call dep_fnc_createunit;
                     _soldier assignAsCommander _veh;
                     _soldier moveInCommander _veh;
                     _soldier removeEventHandler ["killed", 0];
@@ -274,9 +325,9 @@ if ((_location select 1) in ["patrol"]) then {
 // Spawn IED and AT mine
 if ((_location select 1) in ["roadpop"]) then {
     _list = _pos nearRoads 75;
-    if (count _list > 5) then {
+    if (count _list > 4) then {
         
-        if ((random 1) <= 0.5) then {
+        if ((random 1) <= 0.6) then {
             // Create rubble
             _road = _list call BIS_fnc_selectRandom;
             _list = _list - [_road];

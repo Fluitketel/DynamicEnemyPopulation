@@ -53,8 +53,9 @@ if (isNil "dep_veh_chance")     then { dep_veh_chance       = 0.3; };           
 if (isNil "dep_unit_init")      then { dep_unit_init        = ""; };            // Code executed on unit creation
 if (isNil "dep_cr_ied")         then { dep_cr_ied           = false; };         // Restrict disarming IED to explosives class
 if (isNil "dep_useheadless")    then { dep_useheadless      = false; };         // Load DEP on a headless client
+if (isNil "dep_headlessclient") then { dep_headlessclient   = ""; };            // Specify the headless client if there are more than one
 if (isNil "dep_civilians")      then { dep_civilians        = false; };         // Place civilians on the map
-if (isNil "dep_allow_mortars")  then { dep_allow_mortars    = true; };        // Allow players to use mortars
+if (isNil "dep_allow_mortars")  then { dep_allow_mortars    = true; };          // Allow players to use mortars
 
 if (isNil "dep_u_g_soldier")    then { dep_u_g_soldier  = "I_G_Soldier_F"; };
 if (isNil "dep_u_g_gl")         then { dep_u_g_gl       = "I_G_Soldier_GL_F"; };
@@ -115,6 +116,13 @@ if (dep_isheadless && !dep_useheadless) exitWith
 if ((dep_ishostedserver || dep_isserver) && dep_useheadless) exitWith
 {
     diag_log "DEP is not being ran by the server because it's ran by the headless client!";
+};
+if ((typeName dep_headlessclient) == "OBJECT" && dep_useheadless && dep_isheadless) then
+{
+    if (player != dep_headlessclient) exitWith
+    {
+        diag_log format ["DEP is not running on HC '%1' because it's set to run on HC '%2'.", player, dep_headlessclient];
+    };
 };
 
 // World specific settings

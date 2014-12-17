@@ -1,3 +1,7 @@
+Version 0.1.7
+=============
+* Added: multiple HC support
+
 Version 0.1.6
 =============
 * Changed: improved AI and groups counter

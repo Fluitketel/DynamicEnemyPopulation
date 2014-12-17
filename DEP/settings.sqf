@@ -37,6 +37,7 @@
 // dep_cr_ied      = true;                         // Restrict disarming IED to explosives class
 // dep_unit_init   = "";                           // Code to execute on every spawned unit's init
 // dep_useheadless = false;                        // When true DEP is ran on the Headless Client instead of the server
+// dep_headlessclient = "";                        // Specify the headless client if there are more than one
 // dep_allow_mortars = true;                       // When false stops players from using mortars spawned by DEP
 
 // Military forces

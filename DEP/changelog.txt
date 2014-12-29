@@ -1,3 +1,9 @@
+Version 0.1.8
+=============
+* Changed: cache gets cleared when a location is clear
+* Added: various checks to prevent errors
+* Added: possibility to spawn civilians in urban environments
+
 Version 0.1.7
 =============
 * Added: multiple HC support

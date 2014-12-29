@@ -27,13 +27,13 @@ waitUntil{scriptDone _handle};
 // PUBLIC VARIABLES
 dep_total_ai    = 0;
 dep_total_veh   = 0;
-dep_spawning    = false;
 dep_locations   = [];
 dep_loc_cache   = [];
 dep_num_loc     = 0;
 dep_act_bl      = [];
 dep_veh_pat_rad = 600;
 dep_allgroups   = [];
+dep_killed_civ  = 0;
 dep_exceeded_ai_limit       = false;
 dep_exceeded_group_limit    = false;
 
@@ -107,7 +107,8 @@ if (isNil "dep_guer_units") then
     for [{_x=1}, {_x<=dep_unit_low}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_sl]; };
     for [{_x=1}, {_x<=dep_unit_rare}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_marksman]; };
 };
-if (isNil "dep_ground_vehicles")    then { dep_ground_vehicles  = ["I_MRAP_03_hmg_F","I_MRAP_03_gmg_F","I_APC_tracked_03_cannon_F","I_G_Van_01_transport_F","I_APC_Wheeled_03_cannon_F","I_G_offroad_01_armed_F"]; };
+if (isNil "dep_ground_vehicles") then { dep_ground_vehicles  = ["I_MRAP_03_hmg_F","I_MRAP_03_gmg_F","I_APC_tracked_03_cannon_F","I_G_Van_01_transport_F","I_APC_Wheeled_03_cannon_F","I_G_offroad_01_armed_F"]; };
+if (isNil "dep_civ_units") then { dep_civ_units  = ["C_man_1","C_man_1","C_man_polo_1_F","C_man_polo_2_F","C_man_polo_3_F","C_man_polo_4_F","C_man_polo_5_F","C_man_shorts_1_F","C_man_1_1_F","C_man_1_2_F","C_man_1_3_F","C_man_w_worker_F"]; };
 
 if (dep_isheadless && !dep_useheadless) exitWith
 {
@@ -124,6 +125,8 @@ if ((typeName dep_headlessclient) == "OBJECT" && dep_useheadless && dep_isheadle
         diag_log format ["DEP is not running on HC '%1' because it's set to run on HC '%2'.", player, dep_headlessclient];
     };
 };
+
+[] execVM dep_directory+"functions\common.sqf";
 
 // World specific settings
 switch (worldName) do {
@@ -174,6 +177,7 @@ dep_map_radius  = ceil (sqrt (((dep_map_center select 0) ^ 2) + ((dep_map_center
 dep_fnc_random_position         = compile preprocessFileLineNumbers (dep_directory+"functions\randommappos.sqf");
 dep_fnc_outsidesafezone         = compile preprocessFileLineNumbers (dep_directory+"functions\outsidesafezone.sqf");
 dep_fnc_createunit              = compile preprocessFileLineNumbers (dep_directory+"functions\createunit.sqf");
+dep_fnc_createcivilian          = compile preprocessFileLineNumbers (dep_directory+"functions\createcivilian.sqf");
 dep_fnc_isenterable             = compile preprocessFileLineNumbers (dep_directory+"functions\isenterable.sqf");
 dep_fnc_setwaypoints            = compile preprocessFileLineNumbers (dep_directory+"functions\setwaypoints.sqf");
 dep_fnc_getwaypoints            = compile preprocessFileLineNumbers (dep_directory+"functions\getwaypoints.sqf");
@@ -265,6 +269,7 @@ for [{_x=0}, {_x<=_numbuildings}, {_x=_x+1}] do {
                 _location set [7, false];           // location cleared
                 _location set [8, []];              // objects to cleanup
                 _location set [9, 0];               // possible direction of objects
+                _location set [10, []];             // civilians
                 dep_locations = dep_locations + [_location];
                 dep_loc_cache = dep_loc_cache + [[]];
             };
@@ -323,6 +328,7 @@ while {_numbuildings < dep_housepop} do {
                 _location set [7, false];           // location cleared
                 _location set [8, []];              // objects to cleanup
                 _location set [9, 0];               // possible direction of objects
+                _location set [10, []];             // civilians
                 dep_locations = dep_locations + [_location];
                 dep_loc_cache = dep_loc_cache + [[]];
                 _numbuildings = _numbuildings + 1;
@@ -377,6 +383,7 @@ for [{_x=1}, {_x<=dep_roadblocks}, {_x=_x+1}] do {
                     _location set [7, false];           // location cleared
                     _location set [8, []];              // objects to cleanup
                     _location set [9, _dir];            // possible direction of objects
+                    _location set [10, []];             // civilians
                     dep_locations = dep_locations + [_location];
                     dep_loc_cache = dep_loc_cache + [[]];
                     _valid = true;
@@ -431,6 +438,7 @@ for "_c" from 1 to dep_aa_camps do {
                     _location set [7, false];           // location cleared
                     _location set [8, []];              // objects to cleanup
                     _location set [9, 0];               // possible direction of objects
+                    _location set [10, []];             // civilians
                     dep_locations = dep_locations + [_location];
                     dep_loc_cache = dep_loc_cache + [[]];
                 };
@@ -482,6 +490,7 @@ for [{_x=1}, {_x<=dep_patrols}, {_x=_x+1}] do {
                 _location set [7, false];           // location cleared
                 _location set [8, []];              // objects to cleanup
                 _location set [9, 0];               // possible direction of objects
+                _location set [10, []];             // civilians
                 dep_locations = dep_locations + [_location];
                 dep_loc_cache = dep_loc_cache + [[]];
                 _valid = true;
@@ -534,6 +543,7 @@ for [{_x = 0}, {_x < dep_bunkers}, {_x = _x + 1}] do {
                     _location set [7, false];           // location cleared
                     _location set [8, []];              // objects to cleanup
                     _location set [9, 0];               // possible direction of objects
+                    _location set [10, []];             // civilians
                     dep_locations = dep_locations + [_location];
                     dep_loc_cache = dep_loc_cache + [[]];
                     _valid = true;
@@ -587,9 +597,7 @@ dep_ready = true;
 publicVariable "dep_ready";
 
 _countunits = false;
-while {true} do {
-    waitUntil{!dep_spawning};
-    
+while {true} do {    
     for "_g" from 0 to (dep_num_loc - 1) do {
         _location   = dep_locations select _g;
         _pos        = _location select 0;
@@ -627,6 +635,11 @@ while {true} do {
                 _clear = true;
                 _location set [7, _clear];
                 dep_locations set [_g, _location];
+            };
+            if (_clear) then
+            {
+                dep_loc_cache set [_g, []];
+                diag_log format ["Removed cleared location %1 from cache", _g];
             };
         };
         
@@ -702,6 +715,7 @@ while {true} do {
         if (_countunits) then
         {
             dep_allgroups = [];
+            dep_civgroups = [];
             dep_total_ai = 0;
             {
                 if (side _x == dep_side) then { 
@@ -713,6 +727,9 @@ while {true} do {
                         };
                     } foreach (units _grp);
                 };
+                if (side _x == civilian) then {
+                    dep_civgroups = dep_civgroups + [_x];
+                };
             } forEach allGroups;
             //diag_log format ["Total AI: %1 Total groups %2", dep_total_ai, (count dep_allgroups)];
             _countunits = false;
@@ -723,7 +740,7 @@ while {true} do {
             } else {
                 dep_exceeded_ai_limit = false;
             };
-            if (count dep_allgroups >= 134) then {
+            if ((count dep_allgroups) >= 134 || (count dep_civgroups) >= 134) then {
                 dep_exceeded_group_limit = true;
                 diag_log "Group limit of 134 reached!";
             } else {

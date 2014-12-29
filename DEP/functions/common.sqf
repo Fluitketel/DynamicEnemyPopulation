@@ -14,21 +14,18 @@
     You should have received a copy of the GNU General Public License
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
-// This is the init file that should run on every client.
+// This file contains scripts for both server and client.
 
-if (isNil "dep_directory") then
-{ 
-    dep_directory = "DEP\"; 
-};
-
-dep_fnc_disable_ied         = compile preprocessFileLineNumbers (dep_directory+"functions\disable_ied.sqf");
-dep_fnc_disable_ied_action  = compile preprocessFileLineNumbers (dep_directory+"functions\disable_ied_action.sqf");
-
-[] execVM dep_directory+"functions\common.sqf";
-
-if (isNil "dep_ready") then 
+dep_public_eh =
 {
-    waitUntil {!isNil "dep_ready"};
-    systemChat "Dynamic Enemy Population initialized.";
+	_EH     = _this select 0;
+	_value  = _this select 1;
+    
+    switch (_EH) do
+    {
+        case "dep_killed_civ":
+        {
+            systemChat format ["Civilians killed: %1", _value];
+        };
+    };
 };
-"dep_killed_civ" addPublicVariableEventHandler dep_public_eh;

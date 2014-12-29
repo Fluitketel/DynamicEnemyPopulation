@@ -16,9 +16,9 @@
 */
 // This file cleans up a location after it is deactivated.
 
-private ["_location", "_waypoints"];
-diag_log format ["Despawning location %1", _this];
+private ["_location", "_waypoints", "_loccacheitem", "_loccachegrp"];
 _location = dep_locations select _this;
+diag_log format ["Despawning location %1 (%2)", _this, (_location select 1)];
 
 // If location is not clear, store all objects
 if (!(_location select 7)) then {
@@ -74,6 +74,28 @@ if (!(_location select 7)) then {
     } foreach (_location select 4); // foreach group
     _loccache set [1, _loccachegrps];
     
+    // Store all civilians
+    _loccachegrps = [];
+    {
+        _loccachegrp = [];
+        _group = _x;
+        _waypoints = [_group] call dep_fnc_getwaypoints;
+        {
+            if (alive _x && vehicle _x == _x) then {
+                _loccacheitem = [];
+                _loccacheitem set [0, position _x];             // Position
+                _loccacheitem set [1, direction _x];            // Direction
+                _loccacheitem set [2, typeOf _x];               // Kind
+                _loccacheitem set [3, damage _x];               // Health
+                _loccacheitem set [4, []];                      // Crew
+                _loccacheitem set [5, _waypoints];              // Waypoints
+                _loccachegrp = _loccachegrp + [_loccacheitem];
+            };
+        } foreach (units _group); // foreach unit in group
+        if ((count _loccachegrp) > 0) then { _loccachegrps = _loccachegrps + [_loccachegrp]; };
+    } foreach (_location select 10); // foreach civilian group
+    _loccache set [2, _loccachegrps];
+    
     dep_loc_cache set [_this , _loccache];
 } else {
     dep_loc_cache set [_this , []];
@@ -89,6 +111,17 @@ if (!(_location select 7)) then {
         deleteGroup _x;
     };
 } foreach (_location select 4);
+
+{
+    {
+        if (!isNull _x) then { 
+            deleteVehicle _x; 
+        };
+    } forEach (units _x);
+    if ((count units _x) == 0) then {
+        deleteGroup _x;
+    };
+} foreach (_location select 10);
 
 if (!(_location select 7)) then {
     // Clear all objects if location is not clear
@@ -106,5 +139,6 @@ _location set [3, false];
 _location set [4, []];
 _location set [6, 0];
 _location set [8, []];
+_location set [10, []];
 dep_locations set [_this, _location];
 true;

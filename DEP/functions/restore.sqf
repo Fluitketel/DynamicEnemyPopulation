@@ -16,21 +16,23 @@
 */
 // This file restores a previously activated location.
 
-private ["_loccache","_objects","_groups","_grp","_obj","_pos","_unit","_waypoints"];
+private ["_loccache","_objects","_groups","_civilians","_grp","_obj","_pos","_unit","_waypoints","_totalgroups","_totalgroupsciv","_totalenemies","_totalobjects"];
 
 _loccache = dep_loc_cache select _this;
 if ((count _loccache) == 0) exitWith { false; };
 
-dep_spawning = true;
-diag_log format ["Restoring location %1", _this];
-
 _location = dep_locations select _this;
+
+diag_log format ["Restoring location %1 (%2)", _this, (_location select 1)];
+
 _locpos = _location select 0;
 
 _objects = _loccache select 0;
 _groups = _loccache select 1;
+_civilians = _loccache select 2;
 
 _totalgroups = [];
+_totalgroupsciv = [];
 _totalenemies = 0;
 _totalobjects = [];
 
@@ -46,8 +48,13 @@ _totalobjects = [];
             if (_pos distance _locpos > (_location select 2)) then {
                 // Prevent objects from spawning outside the location
                 _list = _locpos nearRoads (_location select 2);
-                _road = _list call BIS_fnc_selectRandom;
-                _pos = (getPos _road);
+                if ((count _list) > 0) then
+                {
+                    _road = _list call BIS_fnc_selectRandom;
+                    _pos = (getPos _road);
+                } else {
+                    _pos = _locpos findEmptyPosition[0, _location select 2];
+                };
             };
             _obj = (_x select 2) createVehicle _pos;
         };
@@ -88,9 +95,6 @@ _totalobjects = [];
                     };
                 };
             };
-            _unit removeEventHandler ["killed", 0];
-            _unit addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
-            
         } foreach (_x select 4); // respawn crew
         _return = [_locpos, _grp] call dep_fnc_vehiclepatrol;
     };
@@ -105,8 +109,6 @@ _totalobjects = [];
         _totalenemies = _totalenemies + 1;
         _obj setDir (_x select 1);
         _obj setDamage (_x select 3);
-        _obj removeEventHandler ["killed", 0];
-        _obj addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
     } foreach _group;
     if ((_location select 1) in ["roadpop"]) then {
         if ((random 1) <= 0.3) then {
@@ -125,11 +127,31 @@ _totalobjects = [];
     };
 } foreach _groups;
 
+{
+    _grp = createGroup civilian;
+    _totalgroupsciv = _totalgroupsciv + [_grp];
+    _group = _x;
+    {
+        _obj = [_grp, (_x select 2), (_x select 0)] call dep_fnc_createcivilian;
+        _obj setDir (_x select 1);
+        _obj setDamage (_x select 3);
+    } foreach _group;
+    [_grp] spawn dep_fnc_enemyspawnprotect;
+
+    _unit = _group select 0;
+    if (count _unit > 5) then {
+        _waypoints = _unit select 5;
+        if (count _waypoints > 0) then {
+            [_grp, _waypoints] spawn dep_fnc_setwaypoints;              
+        };
+    };
+} foreach _civilians;
+
 _location set [3, true];
 _location set [4, _totalgroups];
 _location set [6, _totalenemies];
 _location set [8, _totalobjects];
+_location set [10, _totalgroupsciv];
 dep_locations set [_this, _location];
-dep_spawning = false;
 
 true;

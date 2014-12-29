@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
-// This file creates a unit.
+// This file creates a civilian.
 
 private ["_unit","_group","_pos","_type"];
 _group  = _this select 0;
@@ -30,12 +30,15 @@ if (!isNil "_group" && !isNil "_type" && !isNil "_pos") then
 if (_unit != objNull) then 
 {
     _unit removeEventHandler ["killed", 0];
-    _unit addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
-    
-    if (dep_unit_init != "") then 
-    {
-        _unit spawn (compile dep_unit_init);
-    };
+    _unit addEventHandler ["Killed", {
+        if (isPlayer (_this select 1)) then { 
+            dep_killed_civ = dep_killed_civ + 1;
+            publicVariable "dep_killed_civ";
+            ["dep_killed_civ", dep_killed_civ] call dep_public_eh;
+        };
+        (_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory];
+    }];
+    //_unit execFSM (dep_directory + "functions\civweapon.fsm");
 };
 
 sleep 0.1; 

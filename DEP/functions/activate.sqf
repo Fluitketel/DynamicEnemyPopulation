@@ -22,23 +22,21 @@ if ((count _cache) > 0) exitWith {
     true;
 };
 
-private ["_pos","_houses","_house","_maxbuildingpos","_validhouses","_size","_buildpos","_enemyamount","_groups","_location","_num_houses","_num_buildpos","_totalenemies","_depgroup"];
-
-diag_log format ["Spawning location %1", _this];
-dep_spawning = true;
+private ["_pos","_houses","_house","_maxbuildingpos","_validhouses","_size","_buildpos","_enemyamount","_groups", "_civilians", "_location","_num_houses","_num_buildpos","_totalenemies","_depgroup"];
 
 _location = dep_locations select _this;
+diag_log format ["Spawning location %1 (%2)", _this, (_location select 1)];
+
 _pos        = _location select 0;
 _size       = _location select 2;
 _objects    = _location select 8;
 
 _groups = [];
+_civilians = [];
 _totalenemies = 0;
 
 _rubble_pool = ["Land_Tyres_F","Land_GarbageBags_F","Land_JunkPile_F","Land_GarbageContainer_closed_F","Land_GarbageContainer_open_F","Land_WoodenBox_F"];
 _ied_pool = ["IEDLandBig_Remote_Ammo","IEDLandSmall_Remote_Ammo","IEDUrbanBig_Remote_Ammo","IEDUrbanSmall_Remote_Ammo"];
-//_rubble_pool = ["IEDLandBig_Remote_Ammo","IEDLandSmall_Remote_Ammo","IEDUrbanBig_Remote_Ammo","IEDUrbanSmall_Remote_Ammo"];
-//_rubble_pool = ["IEDLandBig_F","IEDLandSmall_F","IEDUrbanBig_F","IEDUrbanSmall_F"];
 
 if ((_location select 1) == "roadblock") then {
     _result = [_pos, _location select 9] call dep_fnc_roadblock;
@@ -103,9 +101,6 @@ if !((_location select 1) in ["patrol","bunker","roadblock"]) then {
             
             _spawnhandle = [_depgroup, _soldiername, _newbuildpos] spawn {
                 _soldier = [(_this select 0), (_this select 1), (_this select 2)] call dep_fnc_createunit;
-                waitUntil{alive _soldier};
-                _soldier removeEventHandler ["killed", 0];
-                _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
                 _soldier setDir (random 360);
             };
             waitUntil {scriptDone _spawnhandle};
@@ -134,42 +129,16 @@ if !((_location select 1) in ["patrol","bunker","roadblock"]) then {
     
     if (dep_civilians) then
     {
-        civilian setFriend [west, 1];
-        _civgroup = createGroup civilian;
-        for "_e" from 1 to 3 do {
-            _unit = _civgroup createUnit ["C_man_polo_1_F", _pos, [], 0, "NONE"];
-        };
-        _wp = _depgroup addWaypoint [(_pos findEmptyPosition [0, 20]), 0];
-        _wp setWaypointBehaviour "SAFE";
-        _wp setWaypointSpeed "LIMITED";
-        _wp setWaypointFormation "COLUMN";
-        _wp setWaypointTimeOut [10,20,30];
-        _wp setWaypointType "LOITER";
-        [_civgroup, 0] setWaypointLoiterType "CIRCLE";
-        [_civgroup, 0] setWaypointLoiterRadius 100;
-        _wp = _depgroup addWaypoint [(_pos findEmptyPosition [0, 20]), 1];
-        _wp setWaypointBehaviour "SAFE";
-        _wp setWaypointSpeed "LIMITED";
-        _wp setWaypointFormation "COLUMN";
-        _wp setWaypointType "CYCLE";
-        
-        for "_o" from 1 to 4 do {
-            if ((count _validhouses) > 0) then 
-            {
-                _house = _validhouses call BIS_fnc_selectRandom;
-                _validhouses = _validhouses - [_house];
-                _buildpos = _house call dep_fnc_buildingpositions;
+        if ((count _validhouses) > 3) then
+        {
+            civilian setFriend [west, 1];
+            _numciv = (round random 5);
+            for "_e" from 1 to _numciv do {
                 _civgroup = createGroup civilian;
-                for "_e" from 1 to 3 do {
-                    _newbuildpos = [];
-                    if ((count _buildpos) > 0) then 
-                    {
-                        _newbuildpos = _buildpos call BIS_fnc_selectRandom;
-                        _buildpos = _buildpos - [_newbuildpos];
-                        _unit = _civgroup createUnit ["C_man_polo_1_F", _newbuildpos, [], 0, "NONE"];
-                    };
-                };
-                doStop (units _civgroup);
+                _civilians = _civilians + [_civgroup];
+                _newpos = _pos findEmptyPosition [0, 20];
+                _unit = [_civgroup, (dep_civ_units call bis_fnc_selectRandom), _newpos] call dep_fnc_createcivilian;
+                [_civgroup, _size] spawn dep_fnc_unitpatrol;
                 [_civgroup] spawn dep_fnc_enemyspawnprotect;
             };
         };
@@ -188,9 +157,6 @@ if (_location select 1 == "military") then {
             _newpos = _pos findEmptyPosition [0,20];
             _spawnhandle = [_depgroup, _soldiername, _newpos] spawn {
                 _soldier = [(_this select 0), (_this select 1), (_this select 2)] call dep_fnc_createunit;
-                waitUntil{alive _soldier};
-                _soldier removeEventHandler ["killed", 0];
-                _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
             };
             waitUntil {scriptDone _spawnhandle};
         };
@@ -236,7 +202,7 @@ if ((_location select 1) in ["patrol"]) then {
         _numvehicles = round random (dep_veh_chance * 10);
         if (_numvehicles < 1) then { _numvehicles = 1; };
         for "_z" from 1 to _numvehicles do {
-            if (dep_total_veh < dep_max_veh) then {
+            //if (dep_total_veh < dep_max_veh) then {
                 _road = _list call BIS_fnc_selectRandom;
                 _vehname = dep_ground_vehicles call BIS_fnc_selectRandom;
                 _veh = _vehname createVehicle (getPos _road);
@@ -259,12 +225,10 @@ if ((_location select 1) in ["patrol"]) then {
                 _soldier = [_depgroup, _soldiername, (getPos _road)] call dep_fnc_createunit;
                 _soldier assignAsDriver _veh;
                 _soldier moveInDriver _veh;
-                _soldier removeEventHandler ["killed", 0];
-                _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
                 _totalenemies = _totalenemies + 1;
                 _positions = _veh emptyPositions "Gunner";
                 if (_positions > 0) then {
-                    if (_veh isKindOf "Tank") then {
+                    if (_veh isKindOf "Tank" || _veh isKindOf "Wheeled_APC_F") then {
                         _soldiername = dep_u_veh_crew;
                     } else {
                         _soldiername = _units call BIS_fnc_selectRandom;
@@ -272,16 +236,12 @@ if ((_location select 1) in ["patrol"]) then {
                     _soldier = [_depgroup, _soldiername, (getPos _road)] call dep_fnc_createunit;
                     _soldier assignAsGunner _veh;
                     _soldier moveInGunner _veh;
-                    _soldier removeEventHandler ["killed", 0];
-                    _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
                     _totalenemies = _totalenemies + 1;
                 };
-                if (_veh isKindOf "Tank") then {
+                if (_veh isKindOf "Tank" || _veh isKindOf "Wheeled_APC_F") then {
                     _soldier = [_depgroup, dep_u_veh_cmnd, (getPos _road)] call dep_fnc_createunit;
                     _soldier assignAsCommander _veh;
                     _soldier moveInCommander _veh;
-                    _soldier removeEventHandler ["killed", 0];
-                    _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
                     _totalenemies = _totalenemies + 1;
                 };
                 // Put soldiers in APC
@@ -293,12 +253,10 @@ if ((_location select 1) in ["patrol"]) then {
                         _soldier = [_depgroup, _soldiername, (getPos _road)] call dep_fnc_createunit;
                         _soldier assignAsCargo _veh;
                         _soldier moveInCargo _veh;
-                        _soldier removeEventHandler ["killed", 0];
-                        _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
                     };
                 };
                 _return = [_pos, _depgroup] call dep_fnc_vehiclepatrol;
-            };
+            //};
         };
     };
     
@@ -312,9 +270,6 @@ if ((_location select 1) in ["patrol"]) then {
         _soldiername = dep_mil_units call BIS_fnc_selectRandom;
         _spawnhandle = [_depgroup, _soldiername, _newpos] spawn {
             _soldier = [(_this select 0), (_this select 1), (_this select 2)] call dep_fnc_createunit;
-            waitUntil{alive _soldier};
-            _soldier removeEventHandler ["killed", 0];
-            _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
         };
         waitUntil {scriptDone _spawnhandle};
     };
@@ -399,6 +354,6 @@ _location set [3, true];
 _location set [4, _groups];
 _location set [6, _totalenemies];
 _location set [8, _objects];
+_location set [10, _civilians];
 dep_locations set [_this, _location];
-dep_spawning = false;
 true;

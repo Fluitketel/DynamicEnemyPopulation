@@ -31,11 +31,11 @@ if (_unit != objNull) then
 {
     _unit removeEventHandler ["killed", 0];
     _unit addEventHandler ["Killed", {
-        if (isPlayer (_this select 1)) then { 
+        /*if (isPlayer (_this select 1)) then { 
             dep_killed_civ = dep_killed_civ + 1;
             publicVariable "dep_killed_civ";
             ["dep_killed_civ", dep_killed_civ] call dep_public_eh;
-        };
+        };*/
         (_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory];
     }];
     //_unit execFSM (dep_directory + "functions\civweapon.fsm");

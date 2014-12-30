@@ -1,4 +1,5 @@
 DYNAMIC ENEMY POPULATION for Arma 3
+===================================
   by Fluit
     
 Dynamic Enemy Population or DEP is a script for Arma 3 which creates enemy zones all across the island 

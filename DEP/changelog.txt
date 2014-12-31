@@ -1,3 +1,7 @@
+Version 0.1.9
+=============
+* Fixed: error restoring vehicle crew
+
 Version 0.1.8
 =============
 * Changed: cache gets cleared when a location is clear

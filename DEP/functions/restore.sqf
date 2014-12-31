@@ -16,7 +16,7 @@
 */
 // This file restores a previously activated location.
 
-private ["_loccache","_objects","_groups","_civilians","_grp","_obj","_pos","_unit","_waypoints","_totalgroups","_totalgroupsciv","_totalenemies","_totalobjects"];
+private ["_loccache","_objects","_groups","_civilians","_grp","_obj","_pos","_unit","_waypoints","_totalgroups","_totalgroupsciv","_totalenemies","_totalobjects","_crewunit","_objeach"];
 
 _loccache = dep_loc_cache select _this;
 if ((count _loccache) == 0) exitWith { false; };
@@ -37,9 +37,10 @@ _totalenemies = 0;
 _totalobjects = [];
 
 {
-    _pos = _x select 0;
+    _objeach = _x;
+    _pos = _objeach select 0;
     _obj = objNull;
-    switch (_x select 2) do {
+    switch (_objeach select 2) do {
         case "ATMine": {
             _obj = createMine ["ATMine", _pos, [], 0];
             dep_side revealMine _obj;
@@ -56,46 +57,50 @@ _totalobjects = [];
                     _pos = _locpos findEmptyPosition[0, _location select 2];
                 };
             };
-            _obj = (_x select 2) createVehicle _pos;
+            _obj = (_objeach select 2) createVehicle _pos;
         };
     };
     _totalobjects = _totalobjects + [_obj];
-    _obj setDir (_x select 1);
-    _obj setDamage (_x select 3);
+    _obj setDir (_objeach select 1);
+    _obj setDamage (_objeach select 3);
     
-    if ((count (_x select 4)) > 0) then {
+    if ((count (_objeach select 4)) > 0) then {
         _grp = createGroup dep_side;
         _totalgroups = _totalgroups + [_grp];
         {
-            _unit = [_grp, (_x select 0), _pos] call dep_fnc_createunit;
-            _totalenemies = _totalenemies + 1;
-            _roles = _x select 1;
-            
-            if ((count _roles) > 0) then {
-                _role = _roles select 0;
-                switch (_role) do {
-                    case "Driver";
-                    case "driver": {
-                        _unit assignAsDriver _obj;
-                        _unit moveInDriver _obj;
-                    };
-                    case "Turret";
-                    case "turret": {
-                        _unit assignAsGunner _obj;
-                        _unit moveInGunner _obj;
-                    };
-                    case "Cargo";
-                    case "cargo": {
-                        _unit assignAsCargo _obj;
-                        _unit moveInCargo _obj;
-                    };
-                    default {
-                        _unit assignAsCommander _obj;
-                        _unit moveInCommander _obj;
+            _crewunit = _x;
+            if ((count _crewunit) > 0) then
+            {
+                _unit = [_grp, (_crewunit select 0), _pos] call dep_fnc_createunit;
+                _totalenemies = _totalenemies + 1;
+                _roles = _crewunit select 1;
+                
+                if ((count _roles) > 0) then {
+                    _role = _roles select 0;
+                    switch (_role) do {
+                        case "Driver";
+                        case "driver": {
+                            _unit assignAsDriver _obj;
+                            _unit moveInDriver _obj;
+                        };
+                        case "Turret";
+                        case "turret": {
+                            _unit assignAsGunner _obj;
+                            _unit moveInGunner _obj;
+                        };
+                        case "Cargo";
+                        case "cargo": {
+                            _unit assignAsCargo _obj;
+                            _unit moveInCargo _obj;
+                        };
+                        default {
+                            _unit assignAsCommander _obj;
+                            _unit moveInCommander _obj;
+                        };
                     };
                 };
             };
-        } foreach (_x select 4); // respawn crew
+        } foreach (_objeach select 4); // respawn crew
         _return = [_locpos, _grp] call dep_fnc_vehiclepatrol;
     };
 } foreach _objects;

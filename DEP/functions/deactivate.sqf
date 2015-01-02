@@ -16,7 +16,7 @@
 */
 // This file cleans up a location after it is deactivated.
 
-private ["_location", "_waypoints", "_loccacheitem", "_loccachegrp"];
+private ["_location", "_waypoints", "_loccacheitem", "_loccachegrp", "_hasplayers"];
 _location = dep_locations select _this;
 diag_log format ["Despawning location %1 (%2)", _this, (_location select 1)];
 
@@ -27,6 +27,7 @@ if (!(_location select 7)) then {
     // Store all objects
     {
         _obj = _x;
+        _hasplayers = false;
         if (!isNull _obj) then {
             if (alive _obj) then {
                 _loccacheitem = [];
@@ -38,15 +39,20 @@ if (!(_location select 7)) then {
                 _crew = [];
                 {
                     _unit = _x;
+                    if (isPlayer _unit) exitWith { _hasplayers = true; }; // Don't clean up objects when players are in it
+                    
                     _crewunit = [];
                     if (alive _unit) then {
                         _crewunit set [0, typeOf _unit];
                         _crewunit set [1, assignedVehicleRole _unit];
                     };
                     _crew = _crew + [_crewunit];
-                } foreach (crew _x);
+                } foreach (crew _obj);
                 _loccacheitem set [4, _crew];                 // Optional crew
-                _loccacheobjs = _loccacheobjs + [_loccacheitem];
+                if (!_hasplayers) then
+                {
+                    _loccacheobjs = _loccacheobjs + [_loccacheitem];
+                };
             };            
         };
     } foreach (_location select 8);
@@ -81,7 +87,7 @@ if (!(_location select 7)) then {
         _group = _x;
         _waypoints = [_group] call dep_fnc_getwaypoints;
         {
-            if (alive _x && vehicle _x == _x) then {
+            if (alive _x) then {
                 _loccacheitem = [];
                 _loccacheitem set [0, position _x];             // Position
                 _loccacheitem set [1, direction _x];            // Direction
@@ -101,6 +107,7 @@ if (!(_location select 7)) then {
     dep_loc_cache set [_this , []];
 };
 
+// Groups
 {
     {
         if (!isNull _x) then { 
@@ -112,9 +119,11 @@ if (!(_location select 7)) then {
     };
 } foreach (_location select 4);
 
+// Civilians
 {
     {
-        if (!isNull _x) then { 
+        if (!isNull _x) then {
+            if (vehicle _x != _x) then { deleteVehicle (vehicle _x); }; 
             deleteVehicle _x; 
         };
     } forEach (units _x);
@@ -123,14 +132,21 @@ if (!(_location select 7)) then {
     };
 } foreach (_location select 10);
 
+// Objects
 if (!(_location select 7)) then {
     // Clear all objects if location is not clear
     {
-        if (!isNull _x) then {
-            if (_x isKindOf "Tank" || _x isKindOf "Car") then {
+        _obj = _x;
+        if (!isNull _obj) then {
+            if (_obj isKindOf "Tank" || _obj isKindOf "Car") then {
                 dep_total_veh = dep_total_veh - 1;
             };
-            deleteVehicle _x; 
+            _hasplayers = false;
+            {
+                _unit = _x;
+                if (isPlayer _unit) exitWith { systemChat "Has players"; _hasplayers = true; };
+            } foreach (crew _obj);
+            if (!_hasplayers) then { deleteVehicle _obj; }; // Don't clean up objects when players are in it
         };
     } foreach (_location select 8);
 };

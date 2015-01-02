@@ -16,6 +16,8 @@
 */
 // This file contains scripts for both server and client.
 
+dep_killed_civ = 0;
+
 dep_public_eh =
 {
 	_EH     = _this select 0;
@@ -29,3 +31,5 @@ dep_public_eh =
         };
     };
 };
+
+"dep_killed_civ" addPublicVariableEventHandler dep_public_eh;

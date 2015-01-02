@@ -16,7 +16,7 @@
 */
 // This file restores a previously activated location.
 
-private ["_loccache","_objects","_groups","_civilians","_grp","_obj","_pos","_unit","_waypoints","_totalgroups","_totalgroupsciv","_totalenemies","_totalobjects","_crewunit","_objeach"];
+private ["_loccache","_objects","_groups","_civilians","_grp","_obj","_pos","_unit","_waypoints","_totalgroups","_totalgroupsciv","_totalenemies","_totalobjects","_crewunit","_objeach","_vehname","_veh"];
 
 _loccache = dep_loc_cache select _this;
 if ((count _loccache) == 0) exitWith { false; };
@@ -136,6 +136,7 @@ _totalobjects = [];
     _grp = createGroup civilian;
     _totalgroupsciv = _totalgroupsciv + [_grp];
     _group = _x;
+    _obj = objNull;
     {
         _obj = [_grp, (_x select 2), (_x select 0)] call dep_fnc_createcivilian;
         _obj setDir (_x select 1);
@@ -150,6 +151,19 @@ _totalobjects = [];
             [_grp, _waypoints] spawn dep_fnc_setwaypoints;              
         };
     };
+    
+    if ((_location select 1) == "patrol") then 
+    {
+        systemChat "restoring civ patrol";
+        _vehname = dep_civ_veh call BIS_fnc_selectRandom;
+        _veh = _vehname createVehicle ((position _obj) findEmptyPosition[0, 20, _vehname]);
+        _obj assignAsDriver _veh;
+        _obj moveInDriver _veh;
+        [_veh] spawn dep_fnc_vehicledamage;
+    } else {
+        systemChat "restoring civ normal";
+    };
+    
 } foreach _civilians;
 
 _location set [3, true];

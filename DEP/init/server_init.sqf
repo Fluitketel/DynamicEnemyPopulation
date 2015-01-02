@@ -33,14 +33,13 @@ dep_num_loc     = 0;
 dep_act_bl      = [];
 dep_veh_pat_rad = 600;
 dep_allgroups   = [];
-dep_killed_civ  = 0;
 dep_exceeded_ai_limit       = false;
 dep_exceeded_group_limit    = false;
 
 if (isNil "dep_side")           then { dep_side             = independent; };   // Enemy side (east, west, independent)
 if (isNil "dep_despawn")        then { dep_despawn          = 5; };             // Despawn location after x minutes inactivity
 if (isNil "dep_debug")          then { dep_debug            = false; };         // Enable debug
-if (isNil "dep_max_ai_loc")     then { dep_max_ai_loc       = 14; };            // Maximum AI per location
+if (isNil "dep_max_ai_loc")     then { dep_max_ai_loc       = 12; };            // Maximum AI per location
 if (isNil "dep_max_ai_tot")     then { dep_max_ai_tot       = 400; };           // Maximum AI in total
 if (isNil "dep_act_dist")       then { dep_act_dist         = 800; };           // Location activation distance
 if (isNil "dep_act_height")     then { dep_act_height       = 80; };            // Player must be below this height to activate location
@@ -48,14 +47,16 @@ if (isNil "dep_act_speed")      then { dep_act_speed        = 160; };           
 if (isNil "dep_safe_zone")      then { dep_safe_zone        = [];  };           // Safe zone position
 if (isNil "dep_safe_rad")       then { dep_safe_rad         = 800; };           // Safe zone radius
 if (isNil "dep_max_veh")        then { dep_max_veh          = 10; };            // Max number of vehicles
-if (isNil "dep_ied_chance")     then { dep_ied_chance       = 0.6; };           // Chance of IEDs
+if (isNil "dep_ied_chance")     then { dep_ied_chance       = 0.7; };           // Chance of IEDs
 if (isNil "dep_veh_chance")     then { dep_veh_chance       = 0.3; };           // Chance of vehicles
 if (isNil "dep_unit_init")      then { dep_unit_init        = ""; };            // Code executed on unit creation
+if (dep_unit_init != "")        then { dep_unit_init = compile dep_unit_init; };
 if (isNil "dep_cr_ied")         then { dep_cr_ied           = false; };         // Restrict disarming IED to explosives class
 if (isNil "dep_useheadless")    then { dep_useheadless      = false; };         // Load DEP on a headless client
 if (isNil "dep_headlessclient") then { dep_headlessclient   = ""; };            // Specify the headless client if there are more than one
 if (isNil "dep_civilians")      then { dep_civilians        = false; };         // Place civilians on the map
 if (isNil "dep_allow_mortars")  then { dep_allow_mortars    = true; };          // Allow players to use mortars
+if (isNil "dep_fail_civilians") then { dep_fail_civilians   = 0; };             // Number of civilian casualties before mission fail. Use 0 for infinite.
 
 if (isNil "dep_u_g_soldier")    then { dep_u_g_soldier  = "I_G_Soldier_F"; };
 if (isNil "dep_u_g_gl")         then { dep_u_g_gl       = "I_G_Soldier_GL_F"; };
@@ -107,8 +108,9 @@ if (isNil "dep_guer_units") then
     for [{_x=1}, {_x<=dep_unit_low}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_sl]; };
     for [{_x=1}, {_x<=dep_unit_rare}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_marksman]; };
 };
-if (isNil "dep_ground_vehicles") then { dep_ground_vehicles  = ["I_MRAP_03_hmg_F","I_MRAP_03_gmg_F","I_APC_tracked_03_cannon_F","I_G_Van_01_transport_F","I_APC_Wheeled_03_cannon_F","I_G_offroad_01_armed_F"]; };
-if (isNil "dep_civ_units") then { dep_civ_units  = ["C_man_1","C_man_1","C_man_polo_1_F","C_man_polo_2_F","C_man_polo_3_F","C_man_polo_4_F","C_man_polo_5_F","C_man_shorts_1_F","C_man_1_1_F","C_man_1_2_F","C_man_1_3_F","C_man_w_worker_F"]; };
+if (isNil "dep_ground_vehicles") then { dep_ground_vehicles = ["I_MRAP_03_hmg_F","I_MRAP_03_gmg_F","I_APC_tracked_03_cannon_F","I_G_Van_01_transport_F","I_APC_Wheeled_03_cannon_F","I_G_offroad_01_armed_F"]; };
+if (isNil "dep_civ_units") then { dep_civ_units = ["C_man_1","C_man_1","C_man_polo_1_F","C_man_polo_2_F","C_man_polo_3_F","C_man_polo_4_F","C_man_polo_5_F","C_man_shorts_1_F","C_man_1_1_F","C_man_1_2_F","C_man_1_3_F","C_man_w_worker_F"]; };
+if (isNil "dep_civ_veh") then { dep_civ_veh = ["C_Offroad_01_F","C_Van_01_box_F","C_Van_01_transport_F"]; };
 
 if (dep_isheadless && !dep_useheadless) exitWith
 {

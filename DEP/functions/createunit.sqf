@@ -32,9 +32,10 @@ if (_unit != objNull) then
     _unit removeEventHandler ["killed", 0];
     _unit addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
     
-    if (dep_unit_init != "") then 
+    if (typeName dep_unit_init == "CODE") then 
     {
-        _unit spawn (compile dep_unit_init);
+        //_unit spawn (compile dep_unit_init);
+        _unit spawn dep_unit_init;
     };
 };
 

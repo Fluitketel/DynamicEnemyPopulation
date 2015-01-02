@@ -31,4 +31,3 @@ if (isNil "dep_ready") then
     waitUntil {!isNil "dep_ready"};
     systemChat "Dynamic Enemy Population initialized.";
 };
-//"dep_killed_civ" addPublicVariableEventHandler dep_public_eh;

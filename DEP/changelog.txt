@@ -1,3 +1,11 @@
+Version 0.2.0
+=============
+* Changed: custom unit init code is compiled once at initialization of DEP instead of on each unit creation
+* Changed: piers are now blacklisted from enemy spawn positions
+* Added: possibility to fail the mission when too many civilians are killed
+* Added: civilians in vehicles
+* Fixed: objects don't get cleared up when players are inside
+
 Version 0.1.9
 =============
 * Fixed: error restoring vehicle crew

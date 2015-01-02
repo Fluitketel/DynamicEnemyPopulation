@@ -31,11 +31,20 @@ if (_unit != objNull) then
 {
     _unit removeEventHandler ["killed", 0];
     _unit addEventHandler ["Killed", {
-        /*if (isPlayer (_this select 1)) then { 
+        if (isPlayer (_this select 1)) then { 
             dep_killed_civ = dep_killed_civ + 1;
             publicVariable "dep_killed_civ";
             ["dep_killed_civ", dep_killed_civ] call dep_public_eh;
-        };*/
+            
+            if (dep_fail_civilians > 0) then
+            {
+                // Fail mission if limit is reached
+                if (dep_killed_civ >= dep_fail_civilians) then
+                {
+                    [ ["END6", false, true], "BIS_fnc_endMission", side (_this select 1), true] call BIS_fnc_MP;
+                };
+            };
+        };
         (_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory];
     }];
     //_unit execFSM (dep_directory + "functions\civweapon.fsm");

@@ -99,11 +99,13 @@ if !((_location select 1) in ["patrol","bunker","roadblock"]) then {
                 _soldiername = dep_guer_units call BIS_fnc_selectRandom;
             };
             
-            _spawnhandle = [_depgroup, _soldiername, _newbuildpos] spawn {
+            _soldier = [_depgroup, _soldiername, _newbuildpos] call dep_fnc_createunit;
+            _soldier setDir (random 360); 
+            /*_spawnhandle = [_depgroup, _soldiername, _newbuildpos] spawn {
                 _soldier = [(_this select 0), (_this select 1), (_this select 2)] call dep_fnc_createunit;
                 _soldier setDir (random 360);
             };
-            waitUntil {scriptDone _spawnhandle};
+            waitUntil {scriptDone _spawnhandle};*/
         };
         if ((random 1) <= 0.3 && _enemyamount > 1) then {
             // Make units patrol
@@ -127,19 +129,22 @@ if !((_location select 1) in ["patrol","bunker","roadblock"]) then {
         sleep 0.02;
     };
     
-    if (dep_civilians) then
+    if (dep_civilians && (_location select 1) in ["roadpop"]) then
     {
         if ((count _validhouses) > 3) then
         {
             civilian setFriend [west, 1];
-            _numciv = (round random 5);
+            _numciv = 1 + (round random 4);
             for "_e" from 1 to _numciv do {
                 _civgroup = createGroup civilian;
                 _civilians = _civilians + [_civgroup];
                 _newpos = _pos findEmptyPosition [0, 20];
-                _unit = [_civgroup, (dep_civ_units call bis_fnc_selectRandom), _newpos] call dep_fnc_createcivilian;
-                [_civgroup, _size] spawn dep_fnc_unitpatrol;
-                [_civgroup] spawn dep_fnc_enemyspawnprotect;
+                if ((count _newpos) >= 2) then 
+                {
+                    _unit = [_civgroup, (dep_civ_units call bis_fnc_selectRandom), _newpos] call dep_fnc_createcivilian;
+                    [_civgroup, _size] spawn dep_fnc_unitpatrol;
+                    [_civgroup] spawn dep_fnc_enemyspawnprotect;
+                };
             };
         };
     };
@@ -155,10 +160,12 @@ if (_location select 1 == "military") then {
         for "_e" from 1 to _enemyamount do {				
             _soldiername = dep_mil_units call BIS_fnc_selectRandom;
             _newpos = _pos findEmptyPosition [0,20];
-            _spawnhandle = [_depgroup, _soldiername, _newpos] spawn {
+            _soldier = [_depgroup, _soldiername, _newpos] call dep_fnc_createunit;
+            _soldier setDir (random 360);
+            /*_spawnhandle = [_depgroup, _soldiername, _newpos] spawn {
                 _soldier = [(_this select 0), (_this select 1), (_this select 2)] call dep_fnc_createunit;
             };
-            waitUntil {scriptDone _spawnhandle};
+            waitUntil {scriptDone _spawnhandle};*/
         };
         [_depgroup] spawn dep_fnc_enemyspawnprotect;
         [_depgroup, (_location select 2)] spawn dep_fnc_unitpatrol;
@@ -257,6 +264,28 @@ if ((_location select 1) in ["patrol"]) then {
                 };
                 _return = [_pos, _depgroup] call dep_fnc_vehiclepatrol;
             //};
+        };
+        
+        if (dep_civilians) then
+        {
+            if ((round random 1) <= 1) then
+            {
+                _road = _list call BIS_fnc_selectRandom;
+                _vehname = dep_civ_veh call BIS_fnc_selectRandom;
+                _veh = _vehname createVehicle (getPos _road);
+                [_veh] spawn dep_fnc_vehicledamage;
+            
+                civilian setFriend [west, 1];
+                _civgroup = createGroup civilian;
+                _unit = [_civgroup, (dep_civ_units call bis_fnc_selectRandom), (getPos _road)] call dep_fnc_createcivilian;
+                [_civgroup] spawn dep_fnc_enemyspawnprotect;
+                _civilians = _civilians + [_civgroup];
+                
+                _unit assignAsDriver _veh;
+                _unit moveInDriver _veh;
+                
+                _return = [_pos, _civgroup] call dep_fnc_vehiclepatrol;
+            };
         };
     };
     

@@ -17,7 +17,7 @@
 // This file deletes the enemy body after death.
 private ["_unit"];
 _unit = _this;
-sleep 180;
+sleep 300;
 hideBody _unit;
 sleep 30;
 deleteVehicle _unit;

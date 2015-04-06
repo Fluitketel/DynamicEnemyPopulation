@@ -16,7 +16,12 @@
 */
 // This file prevents ai from destroying their own vehicles.
 
-(_this select 0) addEventHandler ["HandleDamage", {
+_veh = _this select 0;
+
+if (isNil { _veh getVariable "selections" } ) then { _veh setVariable ["selections", []]; };
+if (isNil { _veh getVariable "gethit" } ) then { _veh setVariable ["gethit", []]; };
+
+_veh addEventHandler ["HandleDamage", {
     _crew = crew (_this select 0);
     if ((count _crew) > 0) then 
     {
@@ -33,6 +38,24 @@
             if (!isPlayer(_this select 3)) then 
             {
                 damage (_this select 0);
+            } else {
+                _unit = _this select 0;
+                _selections = _unit getVariable ["selections", []];
+                _gethit = _unit getVariable ["gethit", []];
+                _selection = _this select 1;
+                if !(_selection in _selections) then
+                {
+                    _selections set [count _selections, _selection];
+                    _gethit set [count _gethit, 0];
+                };
+                _i = _selections find _selection;
+                _olddamage = _gethit select _i;
+                //_damage = _olddamage + ((_this select 2) - _olddamage);
+                _damage = _olddamage + (_this select 2);
+                _gethit set [_i, _damage];
+                _unit setVariable ["selections", _selections];
+                _unit setVariable ["gethit", _gethit];
+                _damage;
             };
         };
     };

@@ -1,8 +1,8 @@
 DYNAMIC ENEMY POPULATION 
   by Fluit 
-    bugs & feedback:	fluitketel@outlook.com
-      last revision:    2015-01-02
-        version:	0.2.0
+    bugs & feedback :   fluitketel@outlook.com
+      last revision :   2015-03-13
+        version     :   0.3.1
     
 This script creates enemies all across the map including:
  - units in buildings
@@ -18,13 +18,13 @@ This script creates enemies all across the map including:
 Requirements
 ==============================
  - Arma 3
- - @CBA_A3 (server side only)
 
 Installation
 ==============================
  - Copy the DEP folder to your mission root folder
- - Put this code in your mission's init.sqf: [] execVM "DEP\init.sqf";
- - Modify the DEP/settings.sqf file to set custom units and vehicles, custom enemy amounts and more!
+ - Put this code in your mission's init.sqf: 
+   [] execVM "DEP\init.sqf";
+ - Modify the DEP\settings.sqf file to set custom units and vehicles, custom enemy amounts and more!
  
 
 Thanks to

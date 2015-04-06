@@ -25,13 +25,14 @@ if ((count _validhouses) > 0) then {
     _buildpos = _house call dep_fnc_buildingpositions;
     {
         if (alive _x) then {
-            _newbuildpos = _pos;
+            _newbuildpos = [];
             if ((count _buildpos) > 0) then {
                 _newbuildpos = _buildpos call BIS_fnc_selectRandom;
                 _buildpos = _buildpos - [_newbuildpos];
             } else {
-                _newbuildpos = (getPos _house) findEmptyPosition [0, 10];
+                _newbuildpos = (getPos _house) findEmptyPosition [0, 15];
             };
+            if ((count _newbuildpos) < 2) then { _newbuildpos = _pos; };
             _x setPos _newbuildpos;
         };
     } foreach (units _group);

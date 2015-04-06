@@ -28,15 +28,49 @@ _campgroup = createGroup dep_side;
 _campgroup setFormDir _dir;
 _groups = _groups + [_campgroup];
 
-_prop = "CamoNet_INDP_open_F" createVehicle _pos;
+_prop = objNull;
+switch (dep_side) do 
+{
+    case east: {
+        _prop = "CamoNet_OPFOR_open_F" createVehicle _pos;
+    };
+    case west: {
+        _prop = "CamoNet_BLUFOR_open_F" createVehicle _pos;
+    };
+    default {
+        _prop = "CamoNet_INDP_open_F" createVehicle _pos;
+    };
+};
 _prop setDir (_dir + 180);
 
 if (random 1 < 0.5) then {
     _gun1 = objNull;
     if (random 1 < 0.3) then {
-        _gun1 = "I_HMG_01_high_F" createVehicle _pos;
+        switch (dep_side) do 
+        {
+            case east: {
+                _gun1 = "O_HMG_01_high_F" createVehicle _pos;
+            };
+            case west: {
+                _gun1 = "B_HMG_01_high_F" createVehicle _pos;
+            };
+            default {
+                _gun1 = "I_HMG_01_high_F" createVehicle _pos;
+            };
+        };
     } else {
-        _gun1 = "I_static_AT_F" createVehicle _pos;
+        switch (dep_side) do 
+        {
+            case east: {
+                _gun1 = "O_static_AT_F" createVehicle _pos;
+            };
+            case west: {
+                _gun1 = "B_static_AT_F" createVehicle _pos;
+            };
+            default {
+                _gun1 = "I_static_AT_F" createVehicle _pos;
+            };
+        };
     };
     waitUntil {alive _gun1};
     _gun1 setDir _dir;
@@ -46,23 +80,35 @@ if (random 1 < 0.5) then {
     _gunner1 assignAsGunner _gun1;
     _gunner1 moveInGunner _gun1;
     _gunner1 setDir _dir;
-    _gunner1 removeEventHandler ["killed", 0];
-    _gunner1 addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
     _totalenemies = _totalenemies + 1;
 };
 
-_numberofbarriers = 10;
-_newdir = 0;
-for "_c" from 1 to _numberofbarriers do
+if ((random 1) < 0.6) then
 {
-    _newpos = [_pos, 9, _newdir] call BIS_fnc_relPos;
-    _prop = "Land_CncBarrier_F" createVehicle _newpos;
-    waitUntil {alive _prop};
-    _prop setDir _newdir;
-    _newdir = _newdir + (360 / _numberofbarriers);
+    _numberofbarriers = 10;
+    _newdir = 0;
+    for "_c" from 1 to _numberofbarriers do
+    {
+        _newpos = [_pos, 9, _newdir] call BIS_fnc_relPos;
+        _prop = "Land_CncBarrier_F" createVehicle _newpos;
+        _prop setDir _newdir;
+        _newdir = _newdir + (360 / _numberofbarriers);
+    };
 };
 
-_prop = (["Box_East_Ammo_F", "Box_East_AmmoOrd_F", "Box_East_Grenades_F", "Box_East_Ammo_F"] call BIS_fnc_selectRandom) createVehicle _pos;
+_prop = objNull;
+switch (dep_side) do 
+{
+    case east: {
+        _prop = (["Box_East_Ammo_F", "Box_East_AmmoOrd_F", "Box_East_Grenades_F", "Box_East_Ammo_F"] call BIS_fnc_selectRandom) createVehicle _pos;
+    };
+    case west: {
+        _prop = (["Box_NATO_Ammo_F", "Box_NATO_AmmoOrd_F", "Box_NATO_Grenades_F", "Box_NATO_Ammo_F"] call BIS_fnc_selectRandom) createVehicle _pos;
+    };
+    default {
+        _prop = (["Box_IND_Ammo_F", "Box_IND_AmmoOrd_F", "Box_IND_Grenades_F", "Box_IND_Ammo_F"] call BIS_fnc_selectRandom) createVehicle _pos;
+    };
+};
 _prop setDir _dir;
 
 _soldier = [_campgroup, dep_u_g_sl, _pos] call dep_fnc_createunit;
@@ -72,14 +118,10 @@ for "_c" from 1 to (1 + round (random 1)) do {
     _soldier = [_campgroup, dep_u_g_at, _newpos] call dep_fnc_createunit;
     doStop _soldier;
     _totalenemies = _totalenemies + 1;
-    _soldier removeEventHandler ["killed", 0];
-    _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
     
     _newpos = [_pos, ceil (random 10), random 360] call BIS_fnc_relPos;
     _soldier = [_campgroup, ([dep_u_g_medic, dep_u_g_ar, dep_u_g_gl] call BIS_fnc_selectRandom), _newpos] call dep_fnc_createunit;
     doStop _soldier;
     _totalenemies = _totalenemies + 1;
-    _soldier removeEventHandler ["killed", 0];
-    _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
 };
 [_totalenemies,_groups,_objects];

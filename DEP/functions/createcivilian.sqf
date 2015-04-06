@@ -41,7 +41,12 @@ if (_unit != objNull) then
                 // Fail mission if limit is reached
                 if (dep_killed_civ >= dep_fail_civilians) then
                 {
-                    [ ["END6", false, true], "BIS_fnc_endMission", side (_this select 1), true] call BIS_fnc_MP;
+                    if (typeName dep_civ_fail_script == "CODE") then 
+                    {
+                        [] spawn dep_civ_fail_script;
+                    } else {
+                        [ ["END6", false, true], "BIS_fnc_endMission", side (_this select 1), true] call BIS_fnc_MP;
+                    };
                 };
             };
         };

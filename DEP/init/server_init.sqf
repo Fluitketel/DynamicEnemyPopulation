@@ -19,10 +19,13 @@
 _handle = [] execVM dep_directory+"settings.sqf";
 waitUntil{scriptDone _handle};
 
- if !(isClass(configFile>>"CfgPatches">>"cba_main_a3")) exitWith 
- {
-    diag_log "DEP INIT FAILED: CBA NOT FOUND";
- };
+if (!(isClass(configFile>>"CfgPatches">>"cba_main_a3")) && !(worldName in ['Altis', 'Stratis'])) exitWith 
+{
+    diag_log "DEP INIT FAILED: CBA NOT RUNNING ON SERVER";
+    ["DEP INIT FAILED: CBA NOT RUNNING ON SERVER","systemChat",nil,true] call BIS_fnc_MP;
+    dep_ready = false;
+    publicVariable "dep_ready";
+};
 
 // PUBLIC VARIABLES
 dep_total_ai    = 0;
@@ -36,48 +39,111 @@ dep_allgroups   = [];
 dep_exceeded_ai_limit       = false;
 dep_exceeded_group_limit    = false;
 
-if (isNil "dep_side")           then { dep_side             = independent; };   // Enemy side (east, west, independent)
-if (isNil "dep_despawn")        then { dep_despawn          = 5; };             // Despawn location after x minutes inactivity
-if (isNil "dep_debug")          then { dep_debug            = false; };         // Enable debug
-if (isNil "dep_max_ai_loc")     then { dep_max_ai_loc       = 12; };            // Maximum AI per location
-if (isNil "dep_max_ai_tot")     then { dep_max_ai_tot       = 400; };           // Maximum AI in total
-if (isNil "dep_act_dist")       then { dep_act_dist         = 800; };           // Location activation distance
-if (isNil "dep_act_height")     then { dep_act_height       = 80; };            // Player must be below this height to activate location
-if (isNil "dep_act_speed")      then { dep_act_speed        = 160; };           // Player must be below this speed to activate location
-if (isNil "dep_safe_zone")      then { dep_safe_zone        = [];  };           // Safe zone position
-if (isNil "dep_safe_rad")       then { dep_safe_rad         = 800; };           // Safe zone radius
-if (isNil "dep_max_veh")        then { dep_max_veh          = 10; };            // Max number of vehicles
-if (isNil "dep_ied_chance")     then { dep_ied_chance       = 0.7; };           // Chance of IEDs
-if (isNil "dep_veh_chance")     then { dep_veh_chance       = 0.3; };           // Chance of vehicles
-if (isNil "dep_unit_init")      then { dep_unit_init        = ""; };            // Code executed on unit creation
+if (isNil "dep_side")               then { dep_side             = east; };   // Enemy side (east, west, independent)
+if (isNil "dep_own_side")           then { dep_own_side         = west; };          // Friendly side (east, west, independent)
+if (isNil "dep_despawn")            then { dep_despawn          = 5; };             // Despawn location after x minutes inactivity
+if (isNil "dep_debug")              then { dep_debug            = false; };         // Enable debug
+if (isNil "dep_max_ai_loc")         then { dep_max_ai_loc       = 12; };            // Maximum AI per location
+if (isNil "dep_max_ai_tot")         then { dep_max_ai_tot       = 400; };           // Maximum AI in total
+if (isNil "dep_act_dist")           then { dep_act_dist         = 800; };           // Location activation distance
+if (isNil "dep_act_height")         then { dep_act_height       = 80; };            // Player must be below this height to activate location
+if (isNil "dep_act_speed")          then { dep_act_speed        = 160; };           // Player must be below this speed to activate location
+if (isNil "dep_safe_zone")          then { dep_safe_zone        = [];  };           // Safe zone position
+if (isNil "dep_safe_rad")           then { dep_safe_rad         = 800; };           // Safe zone radius
+if (isNil "dep_max_veh")            then { dep_max_veh          = 10; };            // Max number of vehicles
+if (isNil "dep_ied_chance")         then { dep_ied_chance       = 0.7; };           // Chance of IEDs
+if (isNil "dep_veh_chance")         then { dep_veh_chance       = 0.3; };           // Chance of vehicles
+if (isNil "dep_unit_init")          then { dep_unit_init        = ""; };            // Code executed on unit creation
+if (isNil "dep_cr_ied")             then { dep_cr_ied           = false; };         // Restrict disarming IED to explosives class
+if (isNil "dep_useheadless")        then { dep_useheadless      = false; };         // Load DEP on a headless client
+if (isNil "dep_headlessclient")     then { dep_headlessclient   = ""; };            // Specify the headless client if there are more than one
+if (isNil "dep_civilians")          then { dep_civilians        = false; };         // Place civilians on the map
+if (isNil "dep_allow_mortars")      then { dep_allow_mortars    = true; };          // Allow players to use mortars
+if (isNil "dep_fail_civilians")     then { dep_fail_civilians   = 0; };             // Number of civilian casualties before mission fail. Use 0 for infinite.
+if (isNil "dep_zone_markers")       then { dep_zone_markers     = []; };            // Set which markers show up on the map.
+if (isNil "dep_civ_fail_script")    then { dep_civ_fail_script = ""; };            // Code executed when too many civilians are killed
+
 if (dep_unit_init != "")        then { dep_unit_init = compile dep_unit_init; };
-if (isNil "dep_cr_ied")         then { dep_cr_ied           = false; };         // Restrict disarming IED to explosives class
-if (isNil "dep_useheadless")    then { dep_useheadless      = false; };         // Load DEP on a headless client
-if (isNil "dep_headlessclient") then { dep_headlessclient   = ""; };            // Specify the headless client if there are more than one
-if (isNil "dep_civilians")      then { dep_civilians        = false; };         // Place civilians on the map
-if (isNil "dep_allow_mortars")  then { dep_allow_mortars    = true; };          // Allow players to use mortars
-if (isNil "dep_fail_civilians") then { dep_fail_civilians   = 0; };             // Number of civilian casualties before mission fail. Use 0 for infinite.
+if (dep_civ_fail_script != "")  then { dep_civ_fail_script = compile dep_civ_fail_script; };
 
-if (isNil "dep_u_g_soldier")    then { dep_u_g_soldier  = "I_G_Soldier_F"; };
-if (isNil "dep_u_g_gl")         then { dep_u_g_gl       = "I_G_Soldier_GL_F"; };
-if (isNil "dep_u_g_ar")         then { dep_u_g_ar       = "I_G_Soldier_AR_F"; };
-if (isNil "dep_u_g_at")         then { dep_u_g_at       = "I_G_Soldier_LAT_F"; };
-if (isNil "dep_u_g_medic")      then { dep_u_g_medic    = "I_G_medic_F"; };
-if (isNil "dep_u_g_sl")         then { dep_u_g_sl       = "I_G_Soldier_SL_F"; };
-if (isNil "dep_u_g_marksman")   then { dep_u_g_marksman = "I_G_Soldier_M_F"; };
+dep_side setFriend [dep_own_side, 0];
+dep_own_side setFriend [dep_side, 0];
 
-if (isNil "dep_u_soldier")      then { dep_u_soldier    = "I_soldier_F"; };
-if (isNil "dep_u_gl")           then { dep_u_gl         = "I_Soldier_GL_F"; };
-if (isNil "dep_u_ar")           then { dep_u_ar         = "I_Soldier_AR_F"; };
-if (isNil "dep_u_at")           then { dep_u_at         = "I_Soldier_LAT_F"; };
-if (isNil "dep_u_medic")        then { dep_u_medic      = "I_medic_F"; };
-if (isNil "dep_u_aa")           then { dep_u_aa         = "I_Soldier_AA_F"; };
-if (isNil "dep_u_aaa")          then { dep_u_aaa        = "I_Soldier_AAA_F"; };
-if (isNil "dep_u_sl")           then { dep_u_sl         = "I_Soldier_SL_F"; };
-if (isNil "dep_u_marksman")     then { dep_u_marksman   = "I_soldier_M_F"; };
-if (isNil "dep_u_sniper")       then { dep_u_sniper     = "I_Sniper_F"; };
-if (isNil "dep_u_veh_cmnd")       then { dep_u_veh_cmnd     = "I_officer_F"; };
-if (isNil "dep_u_veh_crew")       then { dep_u_veh_crew     = "I_crew_F"; };
+switch (dep_side) do 
+{
+    case east: {
+        if (isNil "dep_u_g_soldier")    then { dep_u_g_soldier  = "O_G_Soldier_F"; };
+        if (isNil "dep_u_g_gl")         then { dep_u_g_gl       = "O_G_Soldier_GL_F"; };
+        if (isNil "dep_u_g_ar")         then { dep_u_g_ar       = "O_G_Soldier_AR_F"; };
+        if (isNil "dep_u_g_at")         then { dep_u_g_at       = "O_G_Soldier_LAT_F"; };
+        if (isNil "dep_u_g_medic")      then { dep_u_g_medic    = "O_G_medic_F"; };
+        if (isNil "dep_u_g_sl")         then { dep_u_g_sl       = "O_G_Soldier_SL_F"; };
+        if (isNil "dep_u_g_marksman")   then { dep_u_g_marksman = "O_G_Soldier_M_F"; };
+
+        if (isNil "dep_u_soldier")      then { dep_u_soldier    = "O_Soldier_F"; };
+        if (isNil "dep_u_gl")           then { dep_u_gl         = "O_Soldier_GL_F"; };
+        if (isNil "dep_u_ar")           then { dep_u_ar         = "O_Soldier_AR_F"; };
+        if (isNil "dep_u_at")           then { dep_u_at         = "O_Soldier_LAT_F"; };
+        if (isNil "dep_u_medic")        then { dep_u_medic      = "O_medic_F"; };
+        if (isNil "dep_u_aa")           then { dep_u_aa         = "O_Soldier_AA_F"; };
+        if (isNil "dep_u_aaa")          then { dep_u_aaa        = "O_Soldier_AAA_F"; };
+        if (isNil "dep_u_sl")           then { dep_u_sl         = "O_Soldier_SL_F"; };
+        if (isNil "dep_u_marksman")     then { dep_u_marksman   = "O_soldier_M_F"; };
+        if (isNil "dep_u_sniper")       then { dep_u_sniper     = "O_Sniper_F"; };
+        if (isNil "dep_u_veh_cmnd")     then { dep_u_veh_cmnd   = "O_officer_F"; };
+        if (isNil "dep_u_veh_crew")     then { dep_u_veh_crew   = "O_crew_F"; };
+        
+        if (isNil "dep_ground_vehicles") then { dep_ground_vehicles = ["O_MRAP_02_hmg_F","O_MRAP_02_gmg_F","O_APC_Tracked_02_cannon_F","O_G_Van_01_transport_F","O_APC_Wheeled_02_rcws_F","O_G_Offroad_01_armed_F"]; };
+    };
+    case west: {
+        if (isNil "dep_u_g_soldier")    then { dep_u_g_soldier  = "B_G_Soldier_F"; };
+        if (isNil "dep_u_g_gl")         then { dep_u_g_gl       = "B_G_Soldier_GL_F"; };
+        if (isNil "dep_u_g_ar")         then { dep_u_g_ar       = "B_G_Soldier_AR_F"; };
+        if (isNil "dep_u_g_at")         then { dep_u_g_at       = "B_G_Soldier_LAT_F"; };
+        if (isNil "dep_u_g_medic")      then { dep_u_g_medic    = "B_G_medic_F"; };
+        if (isNil "dep_u_g_sl")         then { dep_u_g_sl       = "B_G_Soldier_SL_F"; };
+        if (isNil "dep_u_g_marksman")   then { dep_u_g_marksman = "B_G_Soldier_M_F"; };
+
+        if (isNil "dep_u_soldier")      then { dep_u_soldier    = "B_Soldier_F"; };
+        if (isNil "dep_u_gl")           then { dep_u_gl         = "B_Soldier_GL_F"; };
+        if (isNil "dep_u_ar")           then { dep_u_ar         = "B_Soldier_AR_F"; };
+        if (isNil "dep_u_at")           then { dep_u_at         = "B_Soldier_LAT_F"; };
+        if (isNil "dep_u_medic")        then { dep_u_medic      = "B_medic_F"; };
+        if (isNil "dep_u_aa")           then { dep_u_aa         = "B_Soldier_AA_F"; };
+        if (isNil "dep_u_aaa")          then { dep_u_aaa        = "B_Soldier_AAA_F"; };
+        if (isNil "dep_u_sl")           then { dep_u_sl         = "B_Soldier_SL_F"; };
+        if (isNil "dep_u_marksman")     then { dep_u_marksman   = "B_soldier_M_F"; };
+        if (isNil "dep_u_sniper")       then { dep_u_sniper     = "B_Sniper_F"; };
+        if (isNil "dep_u_veh_cmnd")     then { dep_u_veh_cmnd   = "B_officer_F"; };
+        if (isNil "dep_u_veh_crew")     then { dep_u_veh_crew   = "B_crew_F"; };
+        
+        if (isNil "dep_ground_vehicles") then { dep_ground_vehicles = ["B_MRAP_01_hmg_F","B_MRAP_01_gmg_F","B_APC_Wheeled_01_cannon_F","B_G_Van_01_transport_F","B_APC_Tracked_01_AA_F","B_G_Offroad_01_armed_F"]; };
+    };
+    default {
+        if (isNil "dep_u_g_soldier")    then { dep_u_g_soldier  = "I_G_Soldier_F"; };
+        if (isNil "dep_u_g_gl")         then { dep_u_g_gl       = "I_G_Soldier_GL_F"; };
+        if (isNil "dep_u_g_ar")         then { dep_u_g_ar       = "I_G_Soldier_AR_F"; };
+        if (isNil "dep_u_g_at")         then { dep_u_g_at       = "I_G_Soldier_LAT_F"; };
+        if (isNil "dep_u_g_medic")      then { dep_u_g_medic    = "I_G_medic_F"; };
+        if (isNil "dep_u_g_sl")         then { dep_u_g_sl       = "I_G_Soldier_SL_F"; };
+        if (isNil "dep_u_g_marksman")   then { dep_u_g_marksman = "I_G_Soldier_M_F"; };
+
+        if (isNil "dep_u_soldier")      then { dep_u_soldier    = "I_soldier_F"; };
+        if (isNil "dep_u_gl")           then { dep_u_gl         = "I_Soldier_GL_F"; };
+        if (isNil "dep_u_ar")           then { dep_u_ar         = "I_Soldier_AR_F"; };
+        if (isNil "dep_u_at")           then { dep_u_at         = "I_Soldier_LAT_F"; };
+        if (isNil "dep_u_medic")        then { dep_u_medic      = "I_medic_F"; };
+        if (isNil "dep_u_aa")           then { dep_u_aa         = "I_Soldier_AA_F"; };
+        if (isNil "dep_u_aaa")          then { dep_u_aaa        = "I_Soldier_AAA_F"; };
+        if (isNil "dep_u_sl")           then { dep_u_sl         = "I_Soldier_SL_F"; };
+        if (isNil "dep_u_marksman")     then { dep_u_marksman   = "I_soldier_M_F"; };
+        if (isNil "dep_u_sniper")       then { dep_u_sniper     = "I_Sniper_F"; };
+        if (isNil "dep_u_veh_cmnd")     then { dep_u_veh_cmnd   = "I_officer_F"; };
+        if (isNil "dep_u_veh_crew")     then { dep_u_veh_crew   = "I_crew_F"; };
+        
+        if (isNil "dep_ground_vehicles") then { dep_ground_vehicles = ["I_MRAP_03_hmg_F","I_MRAP_03_gmg_F","I_APC_tracked_03_cannon_F","I_G_Van_01_transport_F","I_APC_Wheeled_03_cannon_F","I_G_offroad_01_armed_F"]; };
+    };
+};
 
 dep_unit_rare = 1;
 dep_unit_low = 3;
@@ -108,7 +174,7 @@ if (isNil "dep_guer_units") then
     for [{_x=1}, {_x<=dep_unit_low}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_sl]; };
     for [{_x=1}, {_x<=dep_unit_rare}, {_x=_x+1}] do { dep_guer_units = dep_guer_units + [dep_u_g_marksman]; };
 };
-if (isNil "dep_ground_vehicles") then { dep_ground_vehicles = ["I_MRAP_03_hmg_F","I_MRAP_03_gmg_F","I_APC_tracked_03_cannon_F","I_G_Van_01_transport_F","I_APC_Wheeled_03_cannon_F","I_G_offroad_01_armed_F"]; };
+
 if (isNil "dep_civ_units") then { dep_civ_units = ["C_man_1","C_man_1","C_man_polo_1_F","C_man_polo_2_F","C_man_polo_3_F","C_man_polo_4_F","C_man_polo_5_F","C_man_shorts_1_F","C_man_1_1_F","C_man_1_2_F","C_man_1_3_F","C_man_w_worker_F"]; };
 if (isNil "dep_civ_veh") then { dep_civ_veh = ["C_Offroad_01_F","C_Van_01_box_F","C_Van_01_transport_F"]; };
 
@@ -134,35 +200,39 @@ if ((typeName dep_headlessclient) == "OBJECT" && dep_useheadless && dep_isheadle
 switch (worldName) do {
     case "Altis": {
         if (isNil "dep_map_center") then { dep_map_center  = [15360, 15360]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 160; };
+        if (isNil "dep_housepop")   then { dep_housepop    = 140; };
         if (isNil "dep_roadblocks") then { dep_roadblocks  = 30; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 25; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 40; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 40; };
+        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 20; };
+        if (isNil "dep_patrols")    then { dep_patrols     = 30; };
+        if (isNil "dep_bunkers")    then { dep_bunkers     = 30; };
+        if (isNil "dep_military")   then { dep_military    = 8; };
     };
     case "Stratis": {
         if (isNil "dep_map_center") then { dep_map_center  = [4096, 4096]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 50; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 7; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 5; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 7; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 10; };
+        if (isNil "dep_housepop")   then { dep_housepop    = 15; };
+        if (isNil "dep_roadblocks") then { dep_roadblocks  = 5; };
+        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 3; };
+        if (isNil "dep_patrols")    then { dep_patrols     = 5; };
+        if (isNil "dep_bunkers")    then { dep_bunkers     = 5; };
+        if (isNil "dep_military")   then { dep_military    = 3; };
     };
     case "Takistan": {
         if (isNil "dep_map_center") then { dep_map_center  = [6400, 6400]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 100; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 10; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 8; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 25; };
+        if (isNil "dep_housepop")   then { dep_housepop    = 60; };
+        if (isNil "dep_roadblocks") then { dep_roadblocks  = 8; };
+        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 5; };
+        if (isNil "dep_patrols")    then { dep_patrols     = 14; };
         if (isNil "dep_bunkers")    then { dep_bunkers     = 15; };
+        if (isNil "dep_military")   then { dep_military    = 4; };
     };
     case "Chernarus": {
         if (isNil "dep_map_center") then { dep_map_center  = [7680, 7680]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 100; };
+        if (isNil "dep_housepop")   then { dep_housepop    = 70; };
         if (isNil "dep_roadblocks") then { dep_roadblocks  = 10; };
         if (isNil "dep_aa_camps")   then { dep_aa_camps    = 8; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 25; };
+        if (isNil "dep_patrols")    then { dep_patrols     = 20; };
         if (isNil "dep_bunkers")    then { dep_bunkers     = 20; };
+        if (isNil "dep_military")   then { dep_military    = 6; };
     };
     default {
         if (isNil "dep_map_center") then { dep_map_center  = [0, 0]; };
@@ -171,6 +241,7 @@ switch (worldName) do {
         if (isNil "dep_aa_camps")   then { dep_aa_camps    = 0; };
         if (isNil "dep_patrols")    then { dep_patrols     = 0; };
         if (isNil "dep_bunkers")    then { dep_bunkers     = 0; };
+        if (isNil "dep_military")   then { dep_military    = 0; };
     };
 };
 dep_map_radius  = ceil (sqrt (((dep_map_center select 0) ^ 2) + ((dep_map_center select 1) ^ 2)));
@@ -196,6 +267,8 @@ dep_fnc_roaddir                 = compile preprocessFileLineNumbers (dep_directo
 dep_fnc_roadblock               = compile preprocessFileLineNumbers (dep_directory+"structures\roadblock.sqf");
 dep_fnc_atcamp                  = compile preprocessFileLineNumbers (dep_directory+"structures\atcamp.sqf");
 dep_fnc_mortarcamp              = compile preprocessFileLineNumbers (dep_directory+"structures\mortarcamp.sqf");
+dep_fnc_barracks1               = compile preprocessFileLineNumbers (dep_directory+"structures\barracks1.sqf");
+dep_fnc_barracks2               = compile preprocessFileLineNumbers (dep_directory+"structures\barracks2.sqf");
 dep_fnc_aacamp1                 = compile preprocessFileLineNumbers (dep_directory+"structures\aacamp1.sqf");
 dep_fnc_aacamp2                 = compile preprocessFileLineNumbers (dep_directory+"structures\aacamp2.sqf");
 dep_fnc_restore                 = compile preprocessFileLineNumbers (dep_directory+"functions\restore.sqf");
@@ -214,7 +287,7 @@ if (dep_debug) then {
 private ["_locations","_pos","_flatPos","_building","_countunits"];
 diag_log "Initializing DEP . . .";
 
-if (dep_debug) then {
+/*if (dep_debug) then {
     _m = createMarker ["dep_map_radius", dep_map_center];
     _m setMarkerShape "ELLIPSE";
     _m setMarkerSize [dep_map_radius, dep_map_radius];
@@ -223,7 +296,7 @@ if (dep_debug) then {
     _m = createMarker ["dep_map_center", dep_map_center];
     _m setMarkerType "mil_dot";
     _m setMarkerText "center";
-};
+};*/
 
 _totaltime = 0;
 _starttime = 0;
@@ -233,7 +306,7 @@ if (dep_debug) then {
     _starttime = time;
 };
 _buildings = [dep_map_center, dep_map_radius] call dep_fnc_findmilitarybuildings;
-_numbuildings = (count _buildings) / 2;
+_numbuildings = (count _buildings);
 
 if (dep_debug) then {
     _parttime = time - _starttime;
@@ -242,8 +315,9 @@ if (dep_debug) then {
     _starttime = time;
     diag_log "Creating military areas";
 };
-
+_counter = 0;
 for [{_x=0}, {_x<=_numbuildings}, {_x=_x+1}] do {
+    if (_counter >= dep_military) exitWith {};
     if (count _buildings == 0) exitWith {};
     _building = _buildings call BIS_fnc_selectRandom;
     _buildings = _buildings - [_building];
@@ -272,8 +346,10 @@ for [{_x=0}, {_x<=_numbuildings}, {_x=_x+1}] do {
                 _location set [8, []];              // objects to cleanup
                 _location set [9, 0];               // possible direction of objects
                 _location set [10, []];             // civilians
+                _location set [11, ""];             // marker
                 dep_locations = dep_locations + [_location];
                 dep_loc_cache = dep_loc_cache + [[]];
+                _counter = _counter + 1;
             };
         };
     };
@@ -331,6 +407,7 @@ while {_numbuildings < dep_housepop} do {
                 _location set [8, []];              // objects to cleanup
                 _location set [9, 0];               // possible direction of objects
                 _location set [10, []];             // civilians
+                _location set [11, ""];             // marker
                 dep_locations = dep_locations + [_location];
                 dep_loc_cache = dep_loc_cache + [[]];
                 _numbuildings = _numbuildings + 1;
@@ -386,6 +463,7 @@ for [{_x=1}, {_x<=dep_roadblocks}, {_x=_x+1}] do {
                     _location set [8, []];              // objects to cleanup
                     _location set [9, _dir];            // possible direction of objects
                     _location set [10, []];             // civilians
+                    _location set [11, ""];             // marker
                     dep_locations = dep_locations + [_location];
                     dep_loc_cache = dep_loc_cache + [[]];
                     _valid = true;
@@ -441,6 +519,7 @@ for "_c" from 1 to dep_aa_camps do {
                     _location set [8, []];              // objects to cleanup
                     _location set [9, 0];               // possible direction of objects
                     _location set [10, []];             // civilians
+                    _location set [11, ""];             // marker
                     dep_locations = dep_locations + [_location];
                     dep_loc_cache = dep_loc_cache + [[]];
                 };
@@ -493,6 +572,7 @@ for [{_x=1}, {_x<=dep_patrols}, {_x=_x+1}] do {
                 _location set [8, []];              // objects to cleanup
                 _location set [9, 0];               // possible direction of objects
                 _location set [10, []];             // civilians
+                _location set [11, ""];             // marker
                 dep_locations = dep_locations + [_location];
                 dep_loc_cache = dep_loc_cache + [[]];
                 _valid = true;
@@ -529,9 +609,13 @@ for [{_x = 0}, {_x < dep_bunkers}, {_x = _x + 1}] do {
             if (count _flatPos == 3) then {
                 _distance = true;
                 {
-                    _loc_pos    = _x select 0;
-                    _radius     = _x select 2;
-                    if ((_pos distance _loc_pos) < 400) exitWith { _distance = false; };
+                    if ((_x select 1) in ["bunker","antiair","roadblock"]) then
+                    {
+                        _loc_pos    = _x select 0;
+                        _radius     = _x select 2;
+                        if ((_pos distance _loc_pos) < (800 + _radius)) then { _distance = false; };
+                    };
+                    if (!_distance) exitWith {};
                 } foreach dep_locations;
                 if (_distance) then {
                     _location = [];
@@ -546,6 +630,7 @@ for [{_x = 0}, {_x < dep_bunkers}, {_x = _x + 1}] do {
                     _location set [8, []];              // objects to cleanup
                     _location set [9, 0];               // possible direction of objects
                     _location set [10, []];             // civilians
+                    _location set [11, ""];             // marker
                     dep_locations = dep_locations + [_location];
                     dep_loc_cache = dep_loc_cache + [[]];
                     _valid = true;
@@ -566,14 +651,12 @@ if (dep_debug) then {
 };
 
 // Place makers in debug mode
-if (dep_debug) then {
-    diag_log "Placing markers";
-};
-if (dep_debug) then {
+if (dep_debug) then 
+{
     for [{_x=0}, {_x<(count dep_locations)}, {_x=_x+1}] do {
         _location = dep_locations select _x;
         _pos = _location select 0;
-        _m = createMarker [format ["depmarker-%1",_x], _pos];
+        _m = createMarker [format ["depdebug-%1",_x], _pos];
         _m setMarkerShape "ELLIPSE";
         _m setMarkerSize [_location select 2, _location select 2];
         switch (_location select 1) do {
@@ -586,6 +669,70 @@ if (dep_debug) then {
         };
         _m setMarkerBrush "Solid";
         _m setMarkerAlpha 0.7;
+    };
+    
+    // Safezone marker
+    if (count dep_safe_zone > 0) then 
+    {
+        if (typeName (dep_safe_zone select 0) == "ARRAY") then 
+        {
+            _zonenr = 0;
+            {
+                _m = createMarker [format["dep_safezone_%1", _zonenr], _x];
+                _m setMarkerShape "ELLIPSE";
+                _m setMarkerSize [dep_safe_rad, dep_safe_rad];
+                _m setMarkerColor "ColorBlue";
+                _m setMarkerBrush "FDiagonal";
+                _m setMarkerAlpha 0.5;
+                _zonenr = _zonenr + 1;
+            } forEach dep_safe_zone;
+        } else {
+            _m = createMarker ["dep_safezone", dep_safe_zone];
+            _m setMarkerShape "ELLIPSE";
+            _m setMarkerSize [dep_safe_rad, dep_safe_rad];
+            _m setMarkerColor "ColorBlue";
+            _m setMarkerBrush "FDiagonal";
+            _m setMarkerAlpha 0.5;
+        };
+    };
+    
+    _m = createMarker["dep_mrk_totalai", [01000,02000]];
+    _m setMarkerType "mil_dot";
+    _m setMarkerText format["Total enemies present: %1",0];
+    
+    _m = createMarker["dep_mrk_enemy_grps", [01000,01500]];
+    _m setMarkerType "mil_dot";
+    _m setMarkerText format["Total enemy groups: %1",0];
+    
+    _m = createMarker["dep_mrk_fps", [01000,01000]];
+    _m setMarkerType "mil_dot";
+    _m setMarkerText format["Server FPS: %1",0];
+};
+if ((count dep_zone_markers) > 0) then 
+{
+    if ("all" in dep_zone_markers) then 
+    { 
+        dep_zone_markers = ["patrol","antiair","roadblock","roadpop","military","bunker"]; 
+    };
+    diag_log format ["Placing markers on the following locations: %1", dep_zone_markers];
+    
+    for [{_g=0}, {_g<(count dep_locations)}, {_g=_g+1}] do {
+        _location = dep_locations select _g;
+        if ((_location select 1) in dep_zone_markers) then {
+            _pos = _location select 0;
+            _markname = format ["depmarker-%1",_g];
+            _m = createMarker [_markname, _pos];
+            _m setMarkerType "mil_warning"; 
+            _m setMarkerColor "ColorRed";
+            if (worldName == "Altis") then 
+            {
+                _m setMarkerAlpha 0.5;
+                _m setMarkerSize [0.4, 0.4];
+            };
+            
+            _location set [11, _markname];
+            dep_locations set [_g, _location];
+        };
     };
 };
 
@@ -640,6 +787,21 @@ while {true} do {
             };
             if (_clear) then
             {
+                if ((_location select 11) != "") then {
+                    // Change the marker
+                    if ((_location select 1) in dep_zone_markers) then {
+                        _markname = (_location select 11);
+                        deleteMarker _markname;
+                        _m = createMarker [_markname, _pos];
+                        _m setMarkerType "mil_circle"; 
+                        _m setMarkerColor "ColorGreen";
+                        if (worldName == "Altis") then 
+                        {
+                            _m setMarkerAlpha 0.5;
+                            _m setMarkerSize [0.4, 0.4];
+                        };
+                    };
+                };
                 dep_loc_cache set [_g, []];
                 diag_log format ["Removed cleared location %1 from cache", _g];
             };
@@ -652,27 +814,40 @@ while {true} do {
         
         // Check if at least 1 player is close
         if (!_blacklist) then {
-            _units = playableUnits;
-            if ((count _units) == 0) then { 
-                _units = allUnits;
+            _units = [];
+            if (isMultiplayer) then 
+            {
+                _units = playableUnits;
+            } else {
+                {
+                    if ((side _x) == dep_own_side) then { 
+                        _units = _units + [_x];
+                    };
+                } forEach allUnits;
             };
+            
+            // Also check connected UAV's
+            _UAVs = [];
+            {
+                _uav = getConnectedUAV _x;
+                if !(isNull _uav) then { _UAVs = _UAVs + [_uav]; };
+            } forEach _units;
+            _units = _units + _UAVs;
+            
             _closest = 999999;
             {
-               if ((side _x) == West && isPlayer _x) then
-               {
-                    _speedok = true;
-                    _heightok = true;
-                    if (_type != "antiair") then {
-                        // Check the speed and height of the player
-                        if (((getPos _x) select 2) > dep_act_height) then { _heightok = false; };
-                        if ((speed _x) > dep_act_speed) then { _speedok = false; };
-                    };
-                    
-                    if ((_speedok && _heightok)) then {
-                        _distance = (getPos _x) distance _pos;
-                        if (_distance < _closest) then { _closest = _distance; };
-                    };
-               };
+                _speedok = true;
+                _heightok = true;
+                if (_type != "antiair") then {
+                    // Check the speed and height of the player
+                    if (((getPos _x) select 2) > dep_act_height) then { _heightok = false; };
+                    if ((speed _x) > dep_act_speed) then { _speedok = false; };
+                };
+                
+                if ((_speedok && _heightok)) then {
+                    _distance = (getPos _x) distance _pos;
+                    if (_distance < _closest) then { _closest = _distance; };
+                };
             } forEach _units;
             
             if (_type == "antiair") then {
@@ -753,6 +928,11 @@ while {true} do {
     };
     
     _fps = diag_fps;
+    if (dep_debug) then {
+        "dep_mrk_totalai" setMarkerText format["Total enemies present: %1",dep_total_ai];
+        "dep_mrk_enemy_grps" setMarkerText format["Total enemy groups: %1",(count dep_allgroups)];
+        "dep_mrk_fps" setMarkerText format["Server FPS: %1",_fps];
+    };
     if (_fps > 45) then {
         sleep 1;
     } else {

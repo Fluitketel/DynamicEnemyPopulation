@@ -29,5 +29,8 @@ dep_fnc_disable_ied_action  = compile preprocessFileLineNumbers (dep_directory+"
 if (isNil "dep_ready") then 
 {
     waitUntil {!isNil "dep_ready"};
-    systemChat "Dynamic Enemy Population initialized.";
+    if (dep_ready) then
+    {
+        systemChat "Dynamic Enemy Population initialized.";
+    };
 };

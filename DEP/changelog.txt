@@ -1,3 +1,29 @@
+Version 0.3.1
+=============
+* Fixed: locations can now be activated by UAV's
+* Changed: better enemy respawn positions
+* Changed: enemy static weapons and ammo boxes now belong to their respective side
+
+Version 0.3.0
+=============
+* Added: friendly side default West
+* Added: barracks structures
+* Added: parameter for amount of military zones
+* Changed: enemy side default East
+* Changed: CBA no longer required for maps Altis and Stratis
+* Changed: tweaked default settings for each map
+* Changed: vehicle damage is now saved for each damaged vehicle part instead of the overall damage number
+* Removed: mortar camp due to mortar gunners not responding
+* Fixed: DEP side is now automatically set to enemy
+* Fixed: vehicle damage event handler is now also added when restoring a location
+* Various small optimizations
+
+Version 0.2.1
+=============
+* Added: possibility to show map markers on enemy zones
+* Added: Safe zone markers in debug mode
+* Added: Custom script for mission fail
+
 Version 0.2.0
 =============
 * Changed: custom unit init code is compiled once at initialization of DEP instead of on each unit creation

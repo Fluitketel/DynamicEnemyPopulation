@@ -31,6 +31,7 @@ if (_unit != objNull) then
 {
     _unit removeEventHandler ["killed", 0];
     _unit addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
+    _unit setVariable ["dep_position", getPosATL _unit];
     
     if (typeName dep_unit_init == "CODE") then 
     {

@@ -58,11 +58,32 @@ _totalobjects = [];
                 };
             };
             _obj = (_objeach select 2) createVehicle _pos;
+            _newpos = ATLToASL _pos;
+            _obj setPosASL _newpos;
         };
     };
     _totalobjects = _totalobjects + [_obj];
     _obj setDir (_objeach select 1);
-    _obj setDamage (_objeach select 3);
+    _damage = (_objeach select 3);
+    if (typeName (_damage) == "ARRAY") then 
+    {
+        _selections = _damage select 0;
+        _gethit = _damage select 1;
+        _obj setVariable ["selections", _selections];
+        _obj setVariable ["gethit", _gethit];
+        {
+            _damageloc = _x;
+            _index = _selections find _damageloc;
+            _setdamage = _gethit select _index;
+            if (_setdamage > 0) then
+            {
+                _obj setHit [_damageloc, _setdamage];
+            };
+        } forEach _selections;
+    } else {
+        _obj setDamage _damage;
+    };
+    if (_obj isKindOf "Tank" || _obj isKindOf "Car") then { [_obj] spawn dep_fnc_vehicledamage; };
     
     if ((count (_objeach select 4)) > 0) then {
         _grp = createGroup dep_side;
@@ -108,27 +129,40 @@ _totalobjects = [];
 {
     _grp = createGroup dep_side;
     _totalgroups = _totalgroups + [_grp];
+    _waypoints = [];
     _group = _x;
     {
         _obj = [_grp, (_x select 2), (_x select 0)] call dep_fnc_createunit;
+        _newpos = ATLToASL (_x select 0);
+        _obj setPosASL _newpos;
         _totalenemies = _totalenemies + 1;
         _obj setDir (_x select 1);
         _obj setDamage (_x select 3);
     } foreach _group;
-    if ((_location select 1) in ["roadpop"]) then {
-        if ((random 1) <= 0.3) then {
-            [_grp] spawn dep_fnc_housepatrol;
-        } else {
-            [_grp] spawn dep_fnc_garrison;
-        };
-    } else {
-        _unit = _group select 0;
-        if (count _unit > 5) then {
-            _waypoints = _unit select 5;
-            if (count _waypoints > 0) then {
-                [_grp, _waypoints] spawn dep_fnc_setwaypoints;              
+    switch ((_location select 1)) do
+    {
+        /*case "roadpop": {
+            if ((random 1) <= 0.3) then {
+                [_grp] spawn dep_fnc_housepatrol;
+            } else {
+                [_grp] spawn dep_fnc_garrison;
+            };
+        };*/
+        default { 
+            _unit = _group select 0;
+            if (count _unit > 5) then {
+                _waypoints = _unit select 5;
+                if (count _waypoints > 0) then {
+                    [_grp, _waypoints] spawn dep_fnc_setwaypoints;
+                };
             };
         };
+    };
+    
+    // If the group has no waypoints, stop them from moving into formation
+    if ((count (waypoints (leader _grp))) <= 1 && (count _waypoints) <= 1 ) then
+    {
+        doStop (units _grp);
     };
 } foreach _groups;
 
@@ -139,6 +173,8 @@ _totalobjects = [];
     _obj = objNull;
     {
         _obj = [_grp, (_x select 2), (_x select 0)] call dep_fnc_createcivilian;
+        _newpos = ATLToASL (_x select 0);
+        _obj setPosASL _newpos;
         _obj setDir (_x select 1);
         _obj setDamage (_x select 3);
     } foreach _group;
@@ -154,14 +190,11 @@ _totalobjects = [];
     
     if ((_location select 1) == "patrol") then 
     {
-        systemChat "restoring civ patrol";
         _vehname = dep_civ_veh call BIS_fnc_selectRandom;
         _veh = _vehname createVehicle ((position _obj) findEmptyPosition[0, 20, _vehname]);
         _obj assignAsDriver _veh;
         _obj moveInDriver _veh;
         [_veh] spawn dep_fnc_vehicledamage;
-    } else {
-        systemChat "restoring civ normal";
     };
     
 } foreach _civilians;

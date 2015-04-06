@@ -52,35 +52,40 @@ _newpos = [_housepos, 4, _dir + 200] call BIS_fnc_relPos;
 _prop = (_barrels call BIS_fnc_selectRandom) createVehicle _newpos;
 _prop setDir _dir;
 
-_gun1 = "I_static_AA_F" createVehicle _pos;
+_gun1 = objNull;
+switch (dep_side) do 
+{
+    case east: {
+        _gun1 = "O_static_AA_F" createVehicle _pos;
+    };
+    case west: {
+        _gun1 = "B_static_AA_F" createVehicle _pos;
+    };
+    default {
+        _gun1 = "I_static_AA_F" createVehicle _pos;
+    };
+};
 waitUntil {alive _gun1};
 _gun1 setDir _dir;
 _objects = _objects + [_gun1];
-_gunner1 = [_campgroup, dep_u_g_soldier, _pos] call dep_fnc_createunit;
+_gunner1 = [_campgroup, dep_u_soldier, _pos] call dep_fnc_createunit;
 waitUntil {alive _gunner1};
 _gunner1 assignAsGunner _gun1;
 _gunner1 moveInGunner _gun1;
-_gunner1 removeEventHandler ["killed", 0];
-_gunner1 addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
 _totalenemies = _totalenemies + 1;
 
-_soldier = [_campgroup, dep_u_g_sl, _housepos] call dep_fnc_createunit;
-_soldier removeEventHandler ["killed", 0];
-_soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
+_soldier = [_campgroup, dep_u_sl, _housepos] call dep_fnc_createunit;
 _totalenemies = _totalenemies + 1;
 doStop _soldier;
 for "_c" from 1 to (1 + round (random 1)) do { 
     _newpos = [_pos, ceil (random 10), random 360] call BIS_fnc_relPos;
     _soldier = [_campgroup, dep_u_aa, _newpos] call dep_fnc_createunit;
     doStop _soldier;
-    _soldier removeEventHandler ["killed", 0];
-    _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
     _totalenemies = _totalenemies + 1;
     _newpos = [_pos, ceil (random 10), random 360] call BIS_fnc_relPos;
     _soldier = [_campgroup, dep_u_aaa, _newpos] call dep_fnc_createunit;
     doStop _soldier;
-    _soldier removeEventHandler ["killed", 0];
-    _soldier addEventHandler ["killed", {(_this select 0) execVM format ["%1functions\cleanup.sqf", dep_directory]}];
+
     _totalenemies = _totalenemies + 1;
 };
 [_totalenemies,_groups,_objects];

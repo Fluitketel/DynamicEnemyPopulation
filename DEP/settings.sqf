@@ -22,11 +22,19 @@
 
 /*
     setting name:       dep_side
-    description:        Enemies spawned by DEP will be on this side 
+    description:        Units spawned by DEP will be on this side 
     possible values:    east, west, independent
-    default value:      independent
+    default value:      east
 */
-// dep_side = independent;
+// dep_side = east;
+
+/*
+    setting name:       dep_own_side
+    description:        Units spawned by DEP will be hostile to this side 
+    possible values:    east, west, independent
+    default value:      west
+*/
+// dep_own_side = west;
 
 /*
     setting name:       dep_despawn
@@ -196,7 +204,21 @@
 */
 // dep_fail_civilians = 0;
 
-
+/*
+    setting name:       dep_zone_markers
+    description:        Set which markers show up on the map.
+    possible values:    [], ['all'], ['military', 'roadpop']
+    default value:      []
+*/
+ //dep_zone_markers = ['all'];
+ 
+ /*
+    setting name:       dep_civ_fail_script
+    description:        Run this scrip when too many civilians have been killed.
+    possible values:    string
+    default value:      ""
+*/
+ //dep_civ_fail_script = "";
 
 // *************************************************************
 // Change the following settings to use different enemy classes

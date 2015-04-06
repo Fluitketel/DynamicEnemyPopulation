@@ -31,10 +31,16 @@ if (!(_location select 7)) then {
         if (!isNull _obj) then {
             if (alive _obj) then {
                 _loccacheitem = [];
-                _loccacheitem set [0, position _obj];             // Position
+                _loccacheitem set [0, getPosATL _obj];             // Position
                 _loccacheitem set [1, direction _obj];            // Direction
                 _loccacheitem set [2, typeOf _obj];               // Kind
-                _loccacheitem set [3, damage _obj];               // Health
+                if (_obj isKindOf "Tank" || _obj isKindOf "Car") then {
+                    _selections = _obj getVariable ["selections", []];
+                    _gethit = _obj getVariable "gethit";
+                    _loccacheitem set [3, [_selections, _gethit]];
+                } else {
+                    _loccacheitem set [3, damage _obj];               // Health
+                };
                 
                 _crew = [];
                 {
@@ -66,8 +72,13 @@ if (!(_location select 7)) then {
         _waypoints = [_group] call dep_fnc_getwaypoints;
         {
             if (alive _x && vehicle _x == _x) then {
+                _pos = getPosATL _x;
+                if !(isNil {_x getVariable "dep_position"}) then
+                {
+                    _pos = _x getVariable "dep_position";
+                };
                 _loccacheitem = [];
-                _loccacheitem set [0, position _x];             // Position
+                _loccacheitem set [0, _pos];                    // Position
                 _loccacheitem set [1, direction _x];            // Direction
                 _loccacheitem set [2, typeOf _x];               // Kind
                 _loccacheitem set [3, damage _x];               // Health
@@ -89,7 +100,7 @@ if (!(_location select 7)) then {
         {
             if (alive _x) then {
                 _loccacheitem = [];
-                _loccacheitem set [0, position _x];             // Position
+                _loccacheitem set [0, getPosATL _x];            // Position
                 _loccacheitem set [1, direction _x];            // Direction
                 _loccacheitem set [2, typeOf _x];               // Kind
                 _loccacheitem set [3, damage _x];               // Health
@@ -144,7 +155,7 @@ if (!(_location select 7)) then {
             _hasplayers = false;
             {
                 _unit = _x;
-                if (isPlayer _unit) exitWith { systemChat "Has players"; _hasplayers = true; };
+                if (isPlayer _unit) exitWith { _hasplayers = true; };
             } foreach (crew _obj);
             if (!_hasplayers) then { deleteVehicle _obj; }; // Don't clean up objects when players are in it
         };

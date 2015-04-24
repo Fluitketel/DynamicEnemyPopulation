@@ -1,8 +1,8 @@
 DYNAMIC ENEMY POPULATION 
   by Fluit 
-    bugs & feedback :   fluitketel@outlook.com
-      last revision :   2015-03-13
-        version     :   0.3.1
+    bugs & feedback :   https://github.com/Fluitketel/DynamicEnemyPopulation or fluitketel@outlook.com
+      last revision :   2015-04-23
+        version     :   0.3.2
     
 This script creates enemies all across the map including:
  - units in buildings
@@ -26,6 +26,17 @@ Installation
    [] execVM "DEP\init.sqf";
  - Modify the DEP\settings.sqf file to set custom units and vehicles, custom enemy amounts and more!
  
+Debug map info
+==============================
+When using debug mode, enemy zones will be visible on the map.
+Reference the following list for the color codes:
+- Red           patrol area (vehicular and/or infantry)
+- Blue          AA camp
+- Brown         various types of camps
+- Pink          military area
+- Green         roadblock
+- Yellow        residential
+- Blue lines    safe zones
 
 Thanks to
 ============================== 

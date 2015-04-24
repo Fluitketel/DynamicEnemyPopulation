@@ -141,13 +141,6 @@ _totalobjects = [];
     } foreach _group;
     switch ((_location select 1)) do
     {
-        /*case "roadpop": {
-            if ((random 1) <= 0.3) then {
-                [_grp] spawn dep_fnc_housepatrol;
-            } else {
-                [_grp] spawn dep_fnc_garrison;
-            };
-        };*/
         default { 
             _unit = _group select 0;
             if (count _unit > 5) then {
@@ -171,9 +164,15 @@ _totalobjects = [];
     _totalgroupsciv = _totalgroupsciv + [_grp];
     _group = _x;
     _obj = objNull;
+    
     {
-        _obj = [_grp, (_x select 2), (_x select 0)] call dep_fnc_createcivilian;
-        _newpos = ATLToASL (_x select 0);
+        _pos = (_x select 0);
+        // Prevent objects from spawning outside the location
+        if (_pos distance _locpos > (_location select 2)) then {
+            _pos = _locpos findEmptyPosition[0, 20];
+        };
+        _obj = [_grp, (_x select 2), _pos] call dep_fnc_createcivilian;
+        _newpos = ATLToASL (_pos);
         _obj setPosASL _newpos;
         _obj setDir (_x select 1);
         _obj setDamage (_x select 3);
@@ -196,7 +195,6 @@ _totalobjects = [];
         _obj moveInDriver _veh;
         [_veh] spawn dep_fnc_vehicledamage;
     };
-    
 } foreach _civilians;
 
 _location set [3, true];

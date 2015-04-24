@@ -19,7 +19,23 @@
 _handle = [] execVM dep_directory+"settings.sqf";
 waitUntil{scriptDone _handle};
 
-if (!(isClass(configFile>>"CfgPatches">>"cba_main_a3")) && !(worldName in ['Altis', 'Stratis'])) exitWith 
+// PUBLIC VARIABLES
+dep_worldname   = toLower(worldName);
+dep_total_ai    = 0;
+dep_total_civ   = 0;
+dep_total_veh   = 0;
+dep_locations   = [];
+dep_loc_cache   = [];
+dep_num_loc     = 0;
+dep_num_players = 0;
+dep_act_bl      = [];
+dep_veh_pat_rad = 600;
+dep_allgroups   = [];
+dep_civgroups = [];
+dep_exceeded_ai_limit       = false;
+dep_exceeded_group_limit    = false;
+
+if (!(isClass(configFile>>"CfgPatches">>"cba_main_a3")) && !(dep_worldname in ['altis', 'stratis'])) exitWith 
 {
     diag_log "DEP INIT FAILED: CBA NOT RUNNING ON SERVER";
     ["DEP INIT FAILED: CBA NOT RUNNING ON SERVER","systemChat",nil,true] call BIS_fnc_MP;
@@ -27,28 +43,16 @@ if (!(isClass(configFile>>"CfgPatches">>"cba_main_a3")) && !(worldName in ['Alti
     publicVariable "dep_ready";
 };
 
-// PUBLIC VARIABLES
-dep_total_ai    = 0;
-dep_total_veh   = 0;
-dep_locations   = [];
-dep_loc_cache   = [];
-dep_num_loc     = 0;
-dep_act_bl      = [];
-dep_veh_pat_rad = 600;
-dep_allgroups   = [];
-dep_exceeded_ai_limit       = false;
-dep_exceeded_group_limit    = false;
-
-if (isNil "dep_side")               then { dep_side             = east; };   // Enemy side (east, west, independent)
+if (isNil "dep_side")               then { dep_side             = east; };          // Enemy side (east, west, independent)
 if (isNil "dep_own_side")           then { dep_own_side         = west; };          // Friendly side (east, west, independent)
 if (isNil "dep_despawn")            then { dep_despawn          = 5; };             // Despawn location after x minutes inactivity
 if (isNil "dep_debug")              then { dep_debug            = false; };         // Enable debug
-if (isNil "dep_max_ai_loc")         then { dep_max_ai_loc       = 12; };            // Maximum AI per location
+if (isNil "dep_max_ai_loc")         then { dep_max_ai_loc       = 8; };             // Maximum AI per location
+if (isNil "dep_aim_player")         then { dep_aim_player       = 0; };             // AI multiplier for on the fly modifying the maximum amount of enemy per location
 if (isNil "dep_max_ai_tot")         then { dep_max_ai_tot       = 400; };           // Maximum AI in total
 if (isNil "dep_act_dist")           then { dep_act_dist         = 800; };           // Location activation distance
 if (isNil "dep_act_height")         then { dep_act_height       = 80; };            // Player must be below this height to activate location
 if (isNil "dep_act_speed")          then { dep_act_speed        = 160; };           // Player must be below this speed to activate location
-if (isNil "dep_safe_zone")          then { dep_safe_zone        = [];  };           // Safe zone position
 if (isNil "dep_safe_rad")           then { dep_safe_rad         = 800; };           // Safe zone radius
 if (isNil "dep_max_veh")            then { dep_max_veh          = 10; };            // Max number of vehicles
 if (isNil "dep_ied_chance")         then { dep_ied_chance       = 0.7; };           // Chance of IEDs
@@ -61,13 +65,31 @@ if (isNil "dep_civilians")          then { dep_civilians        = false; };     
 if (isNil "dep_allow_mortars")      then { dep_allow_mortars    = true; };          // Allow players to use mortars
 if (isNil "dep_fail_civilians")     then { dep_fail_civilians   = 0; };             // Number of civilian casualties before mission fail. Use 0 for infinite.
 if (isNil "dep_zone_markers")       then { dep_zone_markers     = []; };            // Set which markers show up on the map.
-if (isNil "dep_civ_fail_script")    then { dep_civ_fail_script = ""; };            // Code executed when too many civilians are killed
+if (isNil "dep_civ_fail_script")    then { dep_civ_fail_script = ""; };             // Code executed when too many civilians are killed
+if (isNil "dep_safe_zone") then 
+{ 
+    if (getMarkerColor "respawn_west" != "" && dep_own_side == west) then { dep_safe_zone = getMarkerPos "respawn_west"; };
+    if (getMarkerColor "respawn_east" != "" && dep_own_side == east) then { dep_safe_zone = getMarkerPos "respawn_east"; };
+    if (getMarkerColor "respawn_guerrila" != "" && dep_own_side == independent) then { dep_safe_zone = getMarkerPos "respawn_guerrila"; };
+    if (isNil "dep_safe_zone") then { dep_safe_zone = []; }; 
+};
+
+dep_base_ai_loc = dep_max_ai_loc;
+if (dep_aim_player > 1 || dep_aim_player < 0) then { dep_aim_player = 0; };
 
 if (dep_unit_init != "")        then { dep_unit_init = compile dep_unit_init; };
 if (dep_civ_fail_script != "")  then { dep_civ_fail_script = compile dep_civ_fail_script; };
 
 dep_side setFriend [dep_own_side, 0];
 dep_own_side setFriend [dep_side, 0];
+
+if (dep_civilians) then
+{
+    civilian setFriend [dep_own_side, 1];
+    civilian setFriend [dep_side, 1];
+    dep_own_side setFriend [civilian, 1];
+    dep_side setFriend [civilian, 1];
+};
 
 switch (dep_side) do 
 {
@@ -197,8 +219,8 @@ if ((typeName dep_headlessclient) == "OBJECT" && dep_useheadless && dep_isheadle
 [] execVM dep_directory+"functions\common.sqf";
 
 // World specific settings
-switch (worldName) do {
-    case "Altis": {
+switch (dep_worldname) do {
+    case "altis": {
         if (isNil "dep_map_center") then { dep_map_center  = [15360, 15360]; };
         if (isNil "dep_housepop")   then { dep_housepop    = 140; };
         if (isNil "dep_roadblocks") then { dep_roadblocks  = 30; };
@@ -207,7 +229,7 @@ switch (worldName) do {
         if (isNil "dep_bunkers")    then { dep_bunkers     = 30; };
         if (isNil "dep_military")   then { dep_military    = 8; };
     };
-    case "Stratis": {
+    case "stratis": {
         if (isNil "dep_map_center") then { dep_map_center  = [4096, 4096]; };
         if (isNil "dep_housepop")   then { dep_housepop    = 15; };
         if (isNil "dep_roadblocks") then { dep_roadblocks  = 5; };
@@ -216,7 +238,7 @@ switch (worldName) do {
         if (isNil "dep_bunkers")    then { dep_bunkers     = 5; };
         if (isNil "dep_military")   then { dep_military    = 3; };
     };
-    case "Takistan": {
+    case "takistan": {
         if (isNil "dep_map_center") then { dep_map_center  = [6400, 6400]; };
         if (isNil "dep_housepop")   then { dep_housepop    = 60; };
         if (isNil "dep_roadblocks") then { dep_roadblocks  = 8; };
@@ -225,7 +247,7 @@ switch (worldName) do {
         if (isNil "dep_bunkers")    then { dep_bunkers     = 15; };
         if (isNil "dep_military")   then { dep_military    = 4; };
     };
-    case "Chernarus": {
+    case "chernarus": {
         if (isNil "dep_map_center") then { dep_map_center  = [7680, 7680]; };
         if (isNil "dep_housepop")   then { dep_housepop    = 70; };
         if (isNil "dep_roadblocks") then { dep_roadblocks  = 10; };
@@ -286,17 +308,6 @@ if (dep_debug) then {
 
 private ["_locations","_pos","_flatPos","_building","_countunits"];
 diag_log "Initializing DEP . . .";
-
-/*if (dep_debug) then {
-    _m = createMarker ["dep_map_radius", dep_map_center];
-    _m setMarkerShape "ELLIPSE";
-    _m setMarkerSize [dep_map_radius, dep_map_radius];
-    _m setMarkerColor "ColorWhite";
-    _m setMarkerAlpha 0.1;
-    _m = createMarker ["dep_map_center", dep_map_center];
-    _m setMarkerType "mil_dot";
-    _m setMarkerText "center";
-};*/
 
 _totaltime = 0;
 _starttime = 0;
@@ -696,13 +707,21 @@ if (dep_debug) then
         };
     };
     
-    _m = createMarker["dep_mrk_totalai", [01000,02000]];
+    _m = createMarker["dep_mrk_totalai", [01000,03000]];
     _m setMarkerType "mil_dot";
     _m setMarkerText format["Total enemies present: %1",0];
     
-    _m = createMarker["dep_mrk_enemy_grps", [01000,01500]];
+    _m = createMarker["dep_mrk_enemy_grps", [01000,02500]];
     _m setMarkerType "mil_dot";
     _m setMarkerText format["Total enemy groups: %1",0];
+    
+    _m = createMarker["dep_mrk_totalciv", [01000,02000]];
+    _m setMarkerType "mil_dot";
+    _m setMarkerText format["Total civilians present: %1",0];
+    
+    _m = createMarker["dep_mrk_civ_grps", [01000,01500]];
+    _m setMarkerType "mil_dot";
+    _m setMarkerText format["Total civilian groups: %1",0];
     
     _m = createMarker["dep_mrk_fps", [01000,01000]];
     _m setMarkerType "mil_dot";
@@ -724,7 +743,7 @@ if ((count dep_zone_markers) > 0) then
             _m = createMarker [_markname, _pos];
             _m setMarkerType "mil_warning"; 
             _m setMarkerColor "ColorRed";
-            if (worldName == "Altis") then 
+            if (dep_worldname == "altis") then 
             {
                 _m setMarkerAlpha 0.5;
                 _m setMarkerSize [0.4, 0.4];
@@ -795,7 +814,7 @@ while {true} do {
                         _m = createMarker [_markname, _pos];
                         _m setMarkerType "mil_circle"; 
                         _m setMarkerColor "ColorGreen";
-                        if (worldName == "Altis") then 
+                        if (dep_worldname == "altis") then 
                         {
                             _m setMarkerAlpha 0.5;
                             _m setMarkerSize [0.4, 0.4];
@@ -825,6 +844,10 @@ while {true} do {
                     };
                 } forEach allUnits;
             };
+            
+            // Dynamic max amount of ai at locations
+            dep_num_players = count _units;
+            dep_max_ai_loc = round (((dep_num_players * dep_aim_player) + 1) * dep_base_ai_loc);
             
             // Also check connected UAV's
             _UAVs = [];
@@ -894,6 +917,7 @@ while {true} do {
             dep_allgroups = [];
             dep_civgroups = [];
             dep_total_ai = 0;
+            dep_total_civ = 0;
             {
                 if (side _x == dep_side) then { 
                     dep_allgroups = dep_allgroups + [_x];
@@ -906,6 +930,12 @@ while {true} do {
                 };
                 if (side _x == civilian) then {
                     dep_civgroups = dep_civgroups + [_x];
+                    _grp = _x;
+                    {
+                        if (!isNull _x) then {
+                            if (alive _x) then { dep_total_civ = dep_total_civ + 1; };
+                        };
+                    } foreach (units _grp);
                 };
             } forEach allGroups;
             //diag_log format ["Total AI: %1 Total groups %2", dep_total_ai, (count dep_allgroups)];
@@ -929,8 +959,10 @@ while {true} do {
     
     _fps = diag_fps;
     if (dep_debug) then {
-        "dep_mrk_totalai" setMarkerText format["Total enemies present: %1",dep_total_ai];
-        "dep_mrk_enemy_grps" setMarkerText format["Total enemy groups: %1",(count dep_allgroups)];
+        "dep_mrk_totalai" setMarkerText format["# %2 enemies: %1", dep_total_ai, dep_side];
+        "dep_mrk_enemy_grps" setMarkerText format["# %2 enemy groups: %1",(count dep_allgroups), dep_side];
+        "dep_mrk_totalciv" setMarkerText format["# civilians: %1", dep_total_civ];
+        "dep_mrk_civ_grps" setMarkerText format["# civilian groups: %1",(count dep_civgroups)];
         "dep_mrk_fps" setMarkerText format["Server FPS: %1",_fps];
     };
     if (_fps > 45) then {

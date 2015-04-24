@@ -16,13 +16,15 @@
 */
 // This file disables an IED.
 
-private ["_ied","_wire","_wrongwire","_unit","_params"];
+private ["_ied","_wire","_wrongwire","_unit","_params","_cut_wires","_disabled"];
 _ied = _this select 0;
 _unit = _this select 1;
 _params = _this select 3;
 
 _wire = _params select 0;
-_wrongwire = round random 2;
+_wrongwire = _ied getVariable "wrong_wire";
+_cut_wires = _ied getVariable "cut_wires";
+_disabled = false;
 
 _ied setVariable ["workingon",true,true];
 //_unit playMove "AinvPknlMstpSlayWrflDnon_medic";
@@ -33,11 +35,11 @@ sleep 6;
 disableUserInput false;
 
 if (_wire == _wrongwire) then {
-    systemChat "Wrong wire!";
     for "_i" from 1 to 2 do {
         playsound3d ["A3\Sounds_f\sfx\Beep_Target.wss",_ied, true, getpos _ied, 1, 1, 0];
         sleep 1;
     };
+    systemChat "Wrong wire!";
     for "_i" from 1 to 4 do {
         playsound3d ["A3\Sounds_f\sfx\Beep_Target.wss",_ied, true, getpos _ied, 1, 1, 0];
         sleep 0.5;
@@ -55,6 +57,24 @@ if (_wire == _wrongwire) then {
     _boomtype createVehicle (position _ied);
     deleteVehicle _ied;
 } else {
-    _ied setVariable ["IED",false,true];
-    systemChat "IED disabled";
+    _cut_wires = _cut_wires + [_wire];
+    _ied setVariable ["workingon",false,true];
+    if ((count _cut_wires) > 1) then 
+    {
+        _disabled = true;
+    } else {
+        if ((random 1) < 0.5) then 
+        {
+            _ied setVariable ["cut_wires",_cut_wires,true];
+            systemChat "Wire cut. Nothing happened.";
+        } else {
+            _disabled = true;
+        };
+    };
+    
+    if (_disabled) then 
+    {
+        _ied setVariable ["IED",false,true];
+        systemChat "IED disabled.";
+    };
 };

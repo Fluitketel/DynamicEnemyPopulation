@@ -54,11 +54,19 @@
 
 /*
     setting name:       dep_max_ai_loc
-    description:        Maximum amount of enemy per location 
+    description:        Maximum amount of enemies per location 
     possible values:    integer greater than 0
-    default value:      12
+    default value:      8
 */
-// dep_max_ai_loc = 12; 
+// dep_max_ai_loc = 8; 
+
+/*
+    setting name:       dep_aim_player
+    description:        AI multiplier for on the fly modifying the maximum amount of enemies per location
+    possible values:    decimal number from 0 to 1
+    default value:      0
+*/
+// dep_aim_player = 0.05; // this results in 0 players = 8 ai, 10 players = 12 ai.
 
 /*
     setting name:       dep_max_ai_tot
@@ -228,56 +236,56 @@
 // ***************
 
 // Soldier
-// dep_u_soldier       = "I_soldier_F";
+// dep_u_soldier       = "O_soldier_F";
 
 // Grenade launcher
-// dep_u_gl            = "I_Soldier_GL_F";
+// dep_u_gl            = "O_Soldier_GL_F";
 
 // Assault rifle
-// dep_u_ar            = "I_Soldier_AR_F";
+// dep_u_ar            = "O_Soldier_AR_F";
 
 // Anti tank
-// dep_u_at            = "I_Soldier_LAT_F";
+// dep_u_at            = "O_Soldier_LAT_F";
 
 // Medic
-// dep_u_medic         = "I_medic_F";
+// dep_u_medic         = "O_medic_F";
 
 // Anti air
-// dep_u_aa            = "I_Soldier_AA_F";
+// dep_u_aa            = "O_Soldier_AA_F";
 
 // Assistant anti air
-// dep_u_aaa           = "I_Soldier_AAA_F";
+// dep_u_aaa           = "O_Soldier_AAA_F";
 
 // Squad leader
-// dep_u_sl            = "I_Soldier_SL_F";
+// dep_u_sl            = "O_Soldier_SL_F";
 
 // Marksman
-// dep_u_marksman      = "I_soldier_M_F";
+// dep_u_marksman      = "O_soldier_M_F";
 
 // Sniper
-// dep_u_sniper        = "I_Sniper_F";
+// dep_u_sniper        = "O_Sniper_F";
 
 
 // Guerilla forces
 // ***************
 
 // Soldier
-// dep_u_g_soldier     = "I_G_Soldier_F";
+// dep_u_g_soldier     = "O_G_Soldier_F";
 
 // Grenade launcher
-// dep_u_g_gl          = "I_G_Soldier_GL_F";
+// dep_u_g_gl          = "O_G_Soldier_GL_F";
 
 // Assault rifle
-// dep_u_g_ar          = "I_G_Soldier_AR_F";
+// dep_u_g_ar          = "O_G_Soldier_AR_F";
 
 // Anti tank
-// dep_u_g_at          = "I_G_Soldier_LAT_F";
+// dep_u_g_at          = "O_G_Soldier_LAT_F";
 
 // Medic
-// dep_u_g_medic       = "I_G_medic_F";
+// dep_u_g_medic       = "O_G_medic_F";
 
 // Squad leader
-// dep_u_g_sl          = "I_G_Soldier_SL_F";
+// dep_u_g_sl          = "O_G_Soldier_SL_F";
 
 // Marksman
-// dep_u_g_marksman    = "I_G_Soldier_M_F";
+// dep_u_g_marksman    = "O_G_Soldier_M_F";

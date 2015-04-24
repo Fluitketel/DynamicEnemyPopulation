@@ -127,23 +127,30 @@ if !((_location select 1) in ["patrol","bunker","roadblock"]) then {
         sleep 0.02;
     };
     
+    // Civilians
     if (dep_civilians && (_location select 1) in ["roadpop"]) then
     {
-        if ((count _validhouses) > 3) then
+        if ((count _validhouses) > 10) then
         {
-            civilian setFriend [dep_own_side, 1];
-            _numciv = 1 + (round random 4);
+            _numciv = 4 + (round random 4);
+            
+            _civgroup = createGroup civilian;
+            _civilians = _civilians + [_civgroup];
             for "_e" from 1 to _numciv do {
-                _civgroup = createGroup civilian;
-                _civilians = _civilians + [_civgroup];
-                _newpos = _pos findEmptyPosition [0, 20];
+                _newpos = _pos findEmptyPosition [0, 50];
                 if ((count _newpos) >= 2) then 
                 {
                     _unit = [_civgroup, (dep_civ_units call bis_fnc_selectRandom), _newpos] call dep_fnc_createcivilian;
-                    [_civgroup, _size] spawn dep_fnc_unitpatrol;
-                    [_civgroup] spawn dep_fnc_enemyspawnprotect;
                 };
             };
+            _newpos = [_pos, 10, (random 360)] call BIS_fnc_relPos;
+            _wp = _civgroup addWaypoint [_newpos, 1];
+            _wp setWaypointBehaviour "CARELESS";
+            _wp setWaypointCombatMode "BLUE";
+            _wp setWaypointSpeed "LIMITED";
+            _wp setWaypointFormation "LINE";
+            _wp setWaypointTimeOut [20,30,40];
+            _wp setWaypointType "DISMISS";
         };
     };
 };
@@ -280,7 +287,6 @@ if ((_location select 1) in ["patrol"]) then {
                 _veh = _vehname createVehicle (getPos _road);
                 [_veh] spawn dep_fnc_vehicledamage;
             
-                civilian setFriend [dep_own_side, 1];
                 _civgroup = createGroup civilian;
                 _unit = [_civgroup, (dep_civ_units call bis_fnc_selectRandom), (getPos _road)] call dep_fnc_createcivilian;
                 [_civgroup] spawn dep_fnc_enemyspawnprotect;
@@ -298,7 +304,7 @@ if ((_location select 1) in ["patrol"]) then {
     _groups = _groups + [_depgroup];
     _enemyamount = [6,8,12] call BIS_fnc_selectRandom;
     _totalenemies = _totalenemies + _enemyamount;
-    _newpos = [_pos, 30, (random 360)] call BIS_fnc_relPos;
+    _newpos = [_pos, 200, (random 360)] call BIS_fnc_relPos;
     
     for "_e" from 1 to _enemyamount do {				
         _soldiername = dep_mil_units call BIS_fnc_selectRandom;
@@ -312,46 +318,55 @@ if ((_location select 1) in ["patrol"]) then {
 };
 
 // Spawn IED and AT mine
-if ((_location select 1) in ["roadpop"]) then {
+if ((_location select 1) in ["roadpop", "patrol"]) then {
     _list = _pos nearRoads 75;
     if (count _list > 4) then {
         
         if ((random 1) <= 0.6) then {
-            // Create rubble
             _road = _list call BIS_fnc_selectRandom;
             _list = _list - [_road];
             _dir = [_road] call dep_fnc_roaddir;
-            _rubblepos = [_road, (5 + (round random 2)), _dir + 90] call BIS_fnc_relPos;
-            _rubble = (_rubble_pool call BIS_fnc_selectRandom) createVehicle _rubblepos;
-            _rubble setDir (_dir + 90);
-           _rubble setVariable ["workingon",false,true]; 
+            _iedpos = [_road, (5 + (round random 2)), _dir + 90] call BIS_fnc_relPos;
+            _ied = objNull;
+            if ((random 1) < 0.6) then {
+                _ied = (_rubble_pool call BIS_fnc_selectRandom) createVehicle _iedpos;
+                _ied setDir (_dir + 90);
+            } else {
+                _ied = (dep_civ_veh call BIS_fnc_selectRandom) createVehicle _iedpos;
+                _ied setDir (_dir);
+                _ied setFuel (1 - (random 1));
+            };
+            
+           _ied setVariable ["workingon",false,true]; 
             if ((random 1) <= dep_ied_chance) then {
                 // Hide IED in rubble
-                _rubble setVariable ["IED",true,true];
+                _ied setVariable ["IED",true,true];
+                _ied setVariable ["wrong_wire", round random 2, true];
+                _ied setVariable ["cut_wires", [], true];
                 // type of IED
                 if ((random 1) <= 0.2) then {
-                    _rubble execFSM (dep_directory + "functions\ied_dp.fsm"); // explodes on vehicles and infantry
+                    _ied execFSM (dep_directory + "functions\ied_dp.fsm"); // explodes on vehicles and infantry
                 } else {
-                    _rubble execFSM (dep_directory + "functions\ied_veh.fsm"); // only explodes on vehicles
+                    _ied execFSM (dep_directory + "functions\ied_veh.fsm"); // only explodes on vehicles
                 };
                 
                 // Add the actions
-                [[[_rubble],format["%1functions\disable_ied_addactions.sqf", dep_directory]],"BIS_fnc_execVM",nil,true] spawn BIS_fnc_MP;
+                [[[_ied],format["%1functions\disable_ied_addactions.sqf", dep_directory]],"BIS_fnc_execVM",nil,true] spawn BIS_fnc_MP;
                 
                 if (dep_debug) then {
-                    _m = createMarker[format["ied%1", _this], _rubblepos];
+                    _m = createMarker[format["ied%1", _this], _iedpos];
                     _m setMarkerType "mil_dot";
                     _m setMarkerText "ied";
                 };
             } else {
-                _rubble setVariable ["IED",false,true];
+                _ied setVariable ["IED",false,true];
                 if (dep_debug) then {
-                    _m = createMarker[format["ied%1", _this], _rubblepos];
+                    _m = createMarker[format["ied%1", _this], _iedpos];
                     _m setMarkerType "mil_dot";
                     _m setMarkerText "fake ied";
                 };
             };            
-            _rubble addEventHandler 
+            _ied addEventHandler 
             ["Explosion", 
                 {                       
                     _object = (_this select 0);
@@ -365,19 +380,23 @@ if ((_location select 1) in ["roadpop"]) then {
             ];
         };
         
-        if ((random 1) <= 0.15) then {
-            // Create mine
-            _road = _list call BIS_fnc_selectRandom;
-            _list = _list - [_road];
-            _dir = [_road] call dep_fnc_roaddir;
-            _minepos = [_road, 1, _dir + 270] call BIS_fnc_relPos;
-            _mine = createMine ["ATMine", _minepos, [], 0];
-            dep_side revealMine _mine;
-            civilian revealMine _mine;
-            if (dep_debug) then {
-                _m = createMarker[format["ATmine%1", _this], _minepos];
-                _m setMarkerType "Minefield";
-                _m setMarkerText "AT";
+        // Create AT mine
+        if ((_location select 1) in ["roadpop"]) then 
+        {
+            if ((random 1) <= 0.15) then 
+            {
+                _road = _list call BIS_fnc_selectRandom;
+                _list = _list - [_road];
+                _dir = [_road] call dep_fnc_roaddir;
+                _minepos = [_road, 1, _dir + 270] call BIS_fnc_relPos;
+                _mine = createMine ["ATMine", _minepos, [], 0];
+                dep_side revealMine _mine;
+                civilian revealMine _mine;
+                if (dep_debug) then {
+                    _m = createMarker[format["ATmine%1", _this], _minepos];
+                    _m setMarkerType "Minefield";
+                    _m setMarkerText "AT";
+                };
             };
         };
     };

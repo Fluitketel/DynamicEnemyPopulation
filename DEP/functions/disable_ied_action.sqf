@@ -15,18 +15,19 @@
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
 // This file handles the action for disabling an IED.
-private ["_target", "_explosivesclass"];
+private ["_target", "_explosivesclass","_wire"];
 _target = cursorTarget;
+_wire = _this select 0;
 
-if (vehicle player != player)               exitWith { false; };
-if (_target distance player > 3)            exitWith { false; };
-if !("ToolKit" in backpackItems player)     exitWith { false; };
-if !(_target getVariable "IED")             exitWith { false; };
-if (_target getVariable "workingon")        exitWith { false; };
+if (vehicle player != player)                   exitWith { false; };
+if (_target distance player > 3)                exitWith { false; };
+if !("ToolKit" in backpackItems player)         exitWith { false; };
+if !(_target getVariable "IED")                 exitWith { false; };
+if (_wire in (_target getVariable "cut_wires")) exitWith { false; };
+if (_target getVariable "workingon")            exitWith { false; };
 if (dep_cr_ied) then {
     _explosivesclass = getNumber (configfile >> "CfgVehicles" >> typeOf player >> "canDeactivateMines");
     if (_explosivesclass == 0) exitWith { false; };
-    //if !(typeOf player in ["B_soldier_exp_F","DR_DPM_soldier_exp","DR_URBAN_soldier_exp","DR_Desert_soldier_exp","DR_Dark_soldier_exp"]) exitWith { false; };
 };
 
 true;

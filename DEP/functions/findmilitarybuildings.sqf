@@ -24,9 +24,9 @@ _checkenterable     = if (count _this > 2) then { _this select 2 } else { true }
 _allbuildings = [];
 _buildings = [];
 
-switch (worldName) do {
-    case "Stratis";
-    case "Altis": {
+switch (dep_worldname) do {
+    case "stratis";
+    case "altis": {
         _buildings = nearestObjects [_pos, ["Cargo_HQ_base_F","Cargo_House_base_F","Cargo_Tower_base_F"], _radius];
     };
     default {

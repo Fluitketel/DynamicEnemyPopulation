@@ -35,21 +35,24 @@ dep_civgroups = [];
 dep_exceeded_ai_limit       = false;
 dep_exceeded_group_limit    = false;
 
-if (!(isClass(configFile>>"CfgPatches">>"cba_main_a3")) && !(dep_worldname in ['altis', 'stratis'])) exitWith 
+/*if (!(isClass(configFile>>"CfgPatches">>"cba_main_a3")) && !(dep_worldname in ['altis', 'stratis'])) exitWith 
 {
     diag_log "DEP INIT FAILED: CBA NOT RUNNING ON SERVER";
     ["DEP INIT FAILED: CBA NOT RUNNING ON SERVER","systemChat",nil,true] call BIS_fnc_MP;
     dep_ready = false;
     publicVariable "dep_ready";
-};
+};*/
 
 if (isNil "dep_side")               then { dep_side             = east; };          // Enemy side (east, west, independent)
 if (isNil "dep_own_side")           then { dep_own_side         = west; };          // Friendly side (east, west, independent)
 if (isNil "dep_despawn")            then { dep_despawn          = 5; };             // Despawn location after x minutes inactivity
 if (isNil "dep_debug")              then { dep_debug            = false; };         // Enable debug
+if (isNil "dep_logging")     		then { dep_logging   		= true; };          // Write debug messages to log file
+if (isNil "dep_chat_logging") 		then { dep_chat_logging 	= false; };         // Write debug messages in chat
+if (isNil "dep_precache")           then { dep_precache         = false; };         // Pre cache locations
 if (isNil "dep_max_ai_loc")         then { dep_max_ai_loc       = 8; };             // Maximum AI per location
 if (isNil "dep_aim_player")         then { dep_aim_player       = 0; };             // AI multiplier for on the fly modifying the maximum amount of enemy per location
-if (isNil "dep_max_ai_tot")         then { dep_max_ai_tot       = 400; };           // Maximum AI in total
+if (isNil "dep_max_ai_tot")         then { dep_max_ai_tot       = 200; };           // Maximum AI in total
 if (isNil "dep_act_dist")           then { dep_act_dist         = 800; };           // Location activation distance
 if (isNil "dep_act_height")         then { dep_act_height       = 80; };            // Player must be below this height to activate location
 if (isNil "dep_act_speed")          then { dep_act_speed        = 160; };           // Player must be below this speed to activate location
@@ -62,6 +65,8 @@ if (isNil "dep_cr_ied")             then { dep_cr_ied           = false; };     
 if (isNil "dep_useheadless")        then { dep_useheadless      = false; };         // Load DEP on a headless client
 if (isNil "dep_headlessclient")     then { dep_headlessclient   = ""; };            // Specify the headless client if there are more than one
 if (isNil "dep_civilians")          then { dep_civilians        = false; };         // Place civilians on the map
+if (isNil "dep_mines")          	then { dep_mines        	= true; };         	// Spawn mines
+if (isNil "dep_ieds")          		then { dep_ieds        		= true; };         	// Spawn IEDs
 if (isNil "dep_allow_mortars")      then { dep_allow_mortars    = true; };          // Allow players to use mortars
 if (isNil "dep_fail_civilians")     then { dep_fail_civilians   = 0; };             // Number of civilian casualties before mission fail. Use 0 for infinite.
 if (isNil "dep_zone_markers")       then { dep_zone_markers     = []; };            // Set which markers show up on the map.
@@ -256,19 +261,39 @@ switch (dep_worldname) do {
         if (isNil "dep_bunkers")    then { dep_bunkers     = 20; };
         if (isNil "dep_military")   then { dep_military    = 6; };
     };
+    case "woodland_acr": {
+        if (isNil "dep_map_center") then { dep_map_center  = [3840, 3840]; };
+        if (isNil "dep_housepop")   then { dep_housepop    = 20; };
+        if (isNil "dep_roadblocks") then { dep_roadblocks  = 4; };
+        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 4; };
+        if (isNil "dep_patrols")    then { dep_patrols     = 5; };
+        if (isNil "dep_bunkers")    then { dep_bunkers     = 10; };
+        if (isNil "dep_military")   then { dep_military    = 3; };
+    };
     default {
-        if (isNil "dep_map_center") then { dep_map_center  = [0, 0]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 0; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 0; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 0; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 0; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 0; };
-        if (isNil "dep_military")   then { dep_military    = 0; };
+        diag_log format ["DEP: Unknown map %1. Attempting to set default values...", worldName];
+        
+        // Attempt to get map center from config file
+        if (isNil "dep_map_center") then { dep_map_center  = getArray(configFile >> "CfgWorlds" >> worldName >> "centerPosition"); };
+        if (typeName dep_map_center != "ARRAY") exitWith 
+        { 
+            diag_log "DEP INIT FAILED: Could not detect world center.";
+            dep_ready = false;
+            publicVariable "dep_ready";
+        };
+        
+        if (isNil "dep_housepop")   then { dep_housepop    = round (0.0052 * (dep_map_center select 0)); };
+        if (isNil "dep_roadblocks") then { dep_roadblocks  = round (0.0011 * (dep_map_center select 0)); };
+        if (isNil "dep_aa_camps")   then { dep_aa_camps    = round (0.0011 * (dep_map_center select 0)); };
+        if (isNil "dep_patrols")    then { dep_patrols     = round (0.0013 * (dep_map_center select 0)); };
+        if (isNil "dep_bunkers")    then { dep_bunkers     = round (0.0026 * (dep_map_center select 0)); };
+        if (isNil "dep_military")   then { dep_military    = round (0.0008 * (dep_map_center select 0)); };
     };
 };
 dep_map_radius  = ceil (sqrt (((dep_map_center select 0) ^ 2) + ((dep_map_center select 1) ^ 2)));
 
 // FUNCTIONS
+dep_fnc_log         			= compile preprocessFileLineNumbers (dep_directory+"functions\log.sqf");
 dep_fnc_random_position         = compile preprocessFileLineNumbers (dep_directory+"functions\randommappos.sqf");
 dep_fnc_outsidesafezone         = compile preprocessFileLineNumbers (dep_directory+"functions\outsidesafezone.sqf");
 dep_fnc_createunit              = compile preprocessFileLineNumbers (dep_directory+"functions\createunit.sqf");
@@ -307,24 +332,27 @@ if (dep_debug) then {
 };
 
 private ["_locations","_pos","_flatPos","_building","_countunits"];
-diag_log "Initializing DEP . . .";
+"Initializing DEP . . ." call dep_fnc_log;
 
 _totaltime = 0;
 _starttime = 0;
 _parttime = 0;
 if (dep_debug) then {
-    diag_log "Finding military buildings";
+    "Finding military buildings" spawn dep_fnc_log;
     _starttime = time;
 };
-_buildings = [dep_map_center, dep_map_radius] call dep_fnc_findmilitarybuildings;
+_buildings = [];
+if (dep_military > 0) then {
+    _buildings = [dep_map_center, dep_map_radius] call dep_fnc_findmilitarybuildings;
+};
 _numbuildings = (count _buildings);
 
 if (dep_debug) then {
     _parttime = time - _starttime;
-    diag_log format ["Took %1 seconds.", _parttime];
+    ["Took %1 seconds.", _parttime] spawn dep_fnc_log;
     _totaltime = _totaltime + _parttime;
     _starttime = time;
-    diag_log "Creating military areas";
+    "Creating military areas" spawn dep_fnc_log;
 };
 _counter = 0;
 for [{_x=0}, {_x<=_numbuildings}, {_x=_x+1}] do {
@@ -370,26 +398,26 @@ _buildings = nil;
 
 if (dep_debug) then {
     _parttime = time - _starttime;
-    diag_log format ["Took %1 seconds.", _parttime];
+    ["Took %1 seconds.", _parttime] spawn dep_fnc_log;
     _totaltime = _totaltime + _parttime;
     _starttime = time;
-    diag_log "Finding normal buildings";
+    "Finding normal buildings" spawn dep_fnc_log;
 };
 _buildings = nearestObjects [dep_map_center, ["House"], dep_map_radius];
 _numbuildings = 0;
 
 if (dep_debug) then {
     _parttime = time - _starttime;
-    diag_log format ["Took %1 seconds.", _parttime];
+    ["Took %1 seconds.", _parttime] spawn dep_fnc_log;
     _totaltime = _totaltime + _parttime;
     _starttime = time;
-    diag_log "Creating normal areas";
+    "Creating normal areas" spawn dep_fnc_log;
 };
 
 while {_numbuildings < dep_housepop} do {
     _building = _buildings call BIS_fnc_selectRandom;
     if (count _buildings == 0) exitWith { 
-        diag_log format ["Not enough buildings, found %1 of %2.", _numbuildings, dep_housepop]; 
+        ["Not enough buildings, found %1 of %2.", _numbuildings, dep_housepop] spawn dep_fnc_log; 
     };
     _buildings = _buildings - [_building];
     _pos = getPos _building;
@@ -431,10 +459,10 @@ _buildings = nil;
 
 if (dep_debug) then {
     _parttime = time - _starttime;
-    diag_log format ["Took %1 seconds.", _parttime];
+    ["Took %1 seconds.", _parttime] spawn dep_fnc_log;
     _totaltime = _totaltime + _parttime;
     _starttime = time;
-    diag_log "Finding roadblocks";
+    "Finding roadblocks" spawn dep_fnc_log;
 };
 
 // Roadblocks
@@ -484,16 +512,16 @@ for [{_x=1}, {_x<=dep_roadblocks}, {_x=_x+1}] do {
         //sleep 0.01;
     };
     if (_fckit) exitWith {
-        diag_log "Roadblocks not found in time";
+        "Roadblocks not found in time" spawn dep_fnc_log;
     };
 };
 
 if (dep_debug) then {
     _parttime = time - _starttime;
-    diag_log format ["Took %1 seconds.", _parttime];
+    ["Took %1 seconds.", _parttime] spawn dep_fnc_log;
     _totaltime = _totaltime + _parttime;
     _starttime = time;
-    diag_log "Finding aa camps";
+    "Finding aa camps" spawn dep_fnc_log;
 };
 // AA Camps
 _aacamps = [];
@@ -538,17 +566,17 @@ for "_c" from 1 to dep_aa_camps do {
         };
     };
     if (_fckit) exitWith {
-        diag_log "AA camps not found in time";
+        "AA camps not found in time" spawn dep_fnc_log;
     };
 };
 _aacamps = nil;
 
 if (dep_debug) then {
     _parttime = time - _starttime;
-    diag_log format ["Took %1 seconds.", _parttime];
+    ["Took %1 seconds.", _parttime] spawn dep_fnc_log;
     _totaltime = _totaltime + _parttime;
     _starttime = time;
-    diag_log "Finding patrols";
+    "Finding patrols" spawn dep_fnc_log;
 };
 // Vehicle patrols
 _fckit = false;
@@ -592,17 +620,17 @@ for [{_x=1}, {_x<=dep_patrols}, {_x=_x+1}] do {
         //sleep 0.005;
     };
     if (_fckit) exitWith {
-        diag_log "Patrols not found in time";
+        "Patrols not found in time" spawn dep_fnc_log;
     };
 };
 _list = nil;
 
 if (dep_debug) then {
     _parttime = time - _starttime;
-    diag_log format ["Took %1 seconds.", _parttime];
+    ["Took %1 seconds.", _parttime] spawn dep_fnc_log;
     _totaltime = _totaltime + _parttime;
     _starttime = time;
-    diag_log "Finding bunkers";
+    "Finding bunkers" spawn dep_fnc_log;
 };
 
 // Bunkers
@@ -650,15 +678,15 @@ for [{_x = 0}, {_x < dep_bunkers}, {_x = _x + 1}] do {
         };
     };
     if (_fckit) exitWith {
-        diag_log format ["Bunkers not found in time. (%1 of %2)", _x, dep_bunkers];
+        ["Bunkers not found in time. (%1 of %2)", _x, dep_bunkers] spawn dep_fnc_log;
     };
 };
 
 if (dep_debug) then {
     _parttime = time - _starttime;
-    diag_log format ["Took %1 seconds.", _parttime];
+    ["Took %1 seconds.", _parttime] spawn dep_fnc_log;
     _totaltime = _totaltime + _parttime;
-    diag_log format ["Total initialization took %1 seconds.", _totaltime];
+    ["Total initialization took %1 seconds.", _totaltime] spawn dep_fnc_log;
 };
 
 // Place makers in debug mode
@@ -707,25 +735,24 @@ if (dep_debug) then
         };
     };
     
-    _m = createMarker["dep_mrk_totalai", [01000,03000]];
+	_debuginfo_space = (((dep_map_center select 0) / 3) / 5);
+	_debuginfo_x = _debuginfo_space;
+	_debuginfo_y = _debuginfo_space;
+	
+	_m = createMarker["dep_mrk_fps", [_debuginfo_x,_debuginfo_y]];
     _m setMarkerType "mil_dot";
-    _m setMarkerText format["Total enemies present: %1",0];
-    
-    _m = createMarker["dep_mrk_enemy_grps", [01000,02500]];
+	_debuginfo_y = _debuginfo_y + _debuginfo_space;
+	_m = createMarker["dep_mrk_civ_grps", [_debuginfo_x,_debuginfo_y]];
     _m setMarkerType "mil_dot";
-    _m setMarkerText format["Total enemy groups: %1",0];
-    
-    _m = createMarker["dep_mrk_totalciv", [01000,02000]];
+	_debuginfo_y = _debuginfo_y + _debuginfo_space;
+	_m = createMarker["dep_mrk_totalciv", [_debuginfo_x,_debuginfo_y]];
     _m setMarkerType "mil_dot";
-    _m setMarkerText format["Total civilians present: %1",0];
-    
-    _m = createMarker["dep_mrk_civ_grps", [01000,01500]];
+	_debuginfo_y = _debuginfo_y + _debuginfo_space;
+	_m = createMarker["dep_mrk_totalai", [_debuginfo_x, _debuginfo_y]];
     _m setMarkerType "mil_dot";
-    _m setMarkerText format["Total civilian groups: %1",0];
-    
-    _m = createMarker["dep_mrk_fps", [01000,01000]];
+	_debuginfo_y = _debuginfo_y + _debuginfo_space;
+	_m = createMarker["dep_mrk_enemy_grps", [_debuginfo_x,_debuginfo_y]];
     _m setMarkerType "mil_dot";
-    _m setMarkerText format["Server FPS: %1",0];
 };
 if ((count dep_zone_markers) > 0) then 
 {
@@ -733,7 +760,7 @@ if ((count dep_zone_markers) > 0) then
     { 
         dep_zone_markers = ["patrol","antiair","roadblock","roadpop","military","bunker"]; 
     };
-    diag_log format ["Placing markers on the following locations: %1", dep_zone_markers];
+    ["Placing markers on the following locations: %1", dep_zone_markers] spawn dep_fnc_log;
     
     for [{_g=0}, {_g<(count dep_locations)}, {_g=_g+1}] do {
         _location = dep_locations select _g;
@@ -755,12 +782,28 @@ if ((count dep_zone_markers) > 0) then
     };
 };
 
+dep_num_loc = (count dep_locations);
+
+if (dep_precache) then
+{
+    for "_g" from 0 to (dep_num_loc - 1) do 
+    {
+        _location = dep_locations select _g;
+        if ((_location select 1) == "antiair") then {
+            _handle = _g call dep_fnc_activate_aacamp;
+        } else {
+            _handle = _g call dep_fnc_activate;
+        };
+        _handle = _g call dep_fnc_deactivate;
+    };
+};
+
 // Start searching for players
 if (dep_debug) then {
-    diag_log "Done creating...";
+    "Done creating..." spawn dep_fnc_log;
 };
-dep_num_loc = (count dep_locations);
-diag_log format ["DEP ready with %1 locations", dep_num_loc];
+
+["DEP ready with %1 locations", dep_num_loc] spawn dep_fnc_log;
 dep_ready = true;
 publicVariable "dep_ready";
 
@@ -793,13 +836,13 @@ while {true} do {
             if (_enemies > 0) then {
                 if ((_alive / _enemies) < 0.1) then {
                     // If number of enemies alive below 10% concider this location clear.
-                    diag_log format ["Cleared location %1", _g];
+                    ["Cleared location %1", _g] spawn dep_fnc_log;
                     _clear = true;
                     _location set [7, _clear];
                     dep_locations set [_g, _location];
                 };
             } else {
-                diag_log format ["Cleared location %1", _g];
+                ["Cleared location %1", _g] spawn dep_fnc_log;
                 _clear = true;
                 _location set [7, _clear];
                 dep_locations set [_g, _location];
@@ -822,7 +865,7 @@ while {true} do {
                     };
                 };
                 dep_loc_cache set [_g, []];
-                diag_log format ["Removed cleared location %1 from cache", _g];
+                ["Removed cleared location %1 from cache", _g] spawn dep_fnc_log;
             };
         };
         
@@ -938,18 +981,18 @@ while {true} do {
                     } foreach (units _grp);
                 };
             } forEach allGroups;
-            //diag_log format ["Total AI: %1 Total groups %2", dep_total_ai, (count dep_allgroups)];
+            //["Total AI: %1 Total groups %2", dep_total_ai, (count dep_allgroups)] spawn dep_fnc_log;
             _countunits = false;
             
             if (dep_total_ai >= dep_max_ai_tot) then {
                 dep_exceeded_ai_limit = true;
-                diag_log format ["AI limit of %1 reached!", dep_max_ai_tot, dep_total_ai];
+                ["AI limit of %1 reached!", dep_max_ai_tot, dep_total_ai] spawn dep_fnc_log;
             } else {
                 dep_exceeded_ai_limit = false;
             };
             if ((count dep_allgroups) >= 134 || (count dep_civgroups) >= 134) then {
                 dep_exceeded_group_limit = true;
-                diag_log "Group limit of 134 reached!";
+                "Group limit of 134 reached!" spawn dep_fnc_log;
             } else {
                 dep_exceeded_group_limit = false;
             };

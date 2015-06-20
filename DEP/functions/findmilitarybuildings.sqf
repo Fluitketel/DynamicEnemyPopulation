@@ -39,8 +39,10 @@ switch (dep_worldname) do {
             
             // Check if it's a military building    
             {
-                _result = [(toLower str _building), _x] call CBA_fnc_find;
-                if (_result >= 0) exitWith { _ok = true;  };
+                /*_result = [(toLower str _building), _x] call CBA_fnc_find;
+                if (_result >= 0) exitWith { _ok = true;  };*/
+                _result = [_x, (str _building)] call BIS_fnc_inString;
+                if (_result) exitWith { _ok = true;  };
             }forEach _keywords;
             
             // Check if it's enterable

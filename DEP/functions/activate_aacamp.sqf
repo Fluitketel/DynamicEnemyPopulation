@@ -27,12 +27,17 @@ if ((count _cache) > 0) exitWith {
 _location = dep_locations select _this;
 _pos = _location select 0;
 
+["Spawning location %1 (%2)", _this, (_location select 1)] spawn dep_fnc_log;
+
 _return = [];
 if ((random 1) <= 0.5) then {
     _return = [_pos, random 360] call dep_fnc_aacamp1;
 } else {
     _return = [_pos, random 360] call dep_fnc_aacamp2;
 };
+
+["%2 enemies created at location %1", _this, (_return select 0)] spawn dep_fnc_log;
+
 _location set [3, true];
 _location set [4, (_return select 1)];
 _location set [6, (_return select 0)];

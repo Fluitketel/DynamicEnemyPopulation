@@ -53,12 +53,29 @@
 // dep_debug = false;
 
 /*
+    setting name:       dep_logging
+    description:        Writes debug messages to Arma 3 log file
+    possible values:    boolean (true or false)
+    default value:      true
+*/
+// dep_logging = true;
+
+/*
+    setting name:       dep_chat_logging
+    description:        Writes debug messages in chat window
+    possible values:    boolean (true or false)
+    default value:      false
+*/
+// dep_chat_logging = false;
+
+/*
     setting name:       dep_max_ai_loc
     description:        Maximum amount of enemies per location 
     possible values:    integer greater than 0
     default value:      8
 */
 // dep_max_ai_loc = 8; 
+
 
 /*
     setting name:       dep_aim_player
@@ -72,9 +89,9 @@
     setting name:       dep_max_ai_tot
     description:        Maximum total amount of enemy that can be alive at once
     possible values:    integer greater than 0
-    default value:      400
+    default value:      200
 */
-// dep_max_ai_tot = 400;
+// dep_max_ai_tot = 200;
 
 /*
     setting name:       dep_act_dist
@@ -139,6 +156,22 @@
     default value:      800
 */
 // dep_safe_rad = 800;
+
+/*
+    setting name:       dep_ieds
+    description:        Allow DEP to spawn IEDs
+    possible values:    boolean (true or false)
+    default value:      true
+*/
+// dep_ieds = true;
+ 
+ /*
+    setting name:       dep_mines
+    description:        Allow DEP to spawn mines (AP and AT)
+    possible values:    boolean (true or false)
+    default value:      true
+*/
+// dep_mines = true;
 
 /*
     setting name:       dep_ied_chance
@@ -227,6 +260,8 @@
     default value:      ""
 */
  //dep_civ_fail_script = "";
+ 
+
 
 // *************************************************************
 // Change the following settings to use different enemy classes

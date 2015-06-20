@@ -23,7 +23,7 @@ if ((count _loccache) == 0) exitWith { false; };
 
 _location = dep_locations select _this;
 
-diag_log format ["Restoring location %1 (%2)", _this, (_location select 1)];
+["Restoring location %1 (%2)", _this, (_location select 1)] spawn dep_fnc_log;
 
 _locpos = _location select 0;
 

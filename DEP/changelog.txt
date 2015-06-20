@@ -1,3 +1,21 @@
+Version 0.4.0
+=============
+* Added: vanilla IEDs
+* Added: write debug messages to log file (dep_logging)
+* Added: on screen debug messages (dep_chat_logging)
+* Added: turn mines on or off (dep_mines)
+* Added: turn IEDs on or off (dep_ieds)
+* Fixed: sometimes the maximum number of ai per location was exceeded 
+
+Version 0.3.4
+=============
+* Added: precaching locations
+
+Version 0.3.3
+=============
+* Added: better support for non standard Arma 3 maps
+* Removed: CBA requirement
+
 Version 0.3.2
 =============
 * Added: respawn position is automatically added as safe zone if no safezone is defined

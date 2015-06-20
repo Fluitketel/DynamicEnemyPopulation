@@ -18,7 +18,7 @@
 
 private ["_location", "_waypoints", "_loccacheitem", "_loccachegrp", "_hasplayers"];
 _location = dep_locations select _this;
-diag_log format ["Despawning location %1 (%2)", _this, (_location select 1)];
+["Despawning location %1 (%2)", _this, (_location select 1)] spawn dep_fnc_log;
 
 // If location is not clear, store all objects
 if (!(_location select 7)) then {

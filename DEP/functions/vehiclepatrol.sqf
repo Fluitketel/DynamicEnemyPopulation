@@ -37,7 +37,7 @@ if ((count _list) >= 5) then
         };
     };
 } else {
-    diag_log "Vehicle patrol couldn't find enough roads, finding random waypoints instead.";
+    "Vehicle patrol couldn't find enough roads, finding random waypoints instead." spawn dep_fnc_log;
     for "_y" from 0 to 5 do {
         _wppos = [_pos, (random dep_veh_pat_rad), (random 360)] call BIS_fnc_relPos;
         _wp = _group addWaypoint [_wppos, _y];

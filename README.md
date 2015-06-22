@@ -17,11 +17,6 @@ are close to the location and cleans up the enemies if players leave the area.
 > - IED's
 > - mines (AT & APERS)
 
-Requirements
-==============================
- - Arma 3
- - @CBA_A3 (server side only)
-
 Installation
 ==============================
  - Copy the DEP folder to your mission root folder

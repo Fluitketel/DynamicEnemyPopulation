@@ -28,8 +28,7 @@ Installation
  
 Credits
 ==============================
-I would like to thank the Dedicated Rejects community for the powerful server to test and play on.
-Special thanks to the Arma section for helping me improve my scripts and for all the fun we have while playing!
+I would like to thank all my Arma friends!
   ~ Fluit
 
 Donate

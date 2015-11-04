@@ -1,4 +1,4 @@
-/*  Copyright 2014 Fluit
+/*  Copyright 2015 Fluit
     
     This file is part of Dynamic Enemy Population.
 
@@ -14,28 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
-// This is the init file that should run on every client.
+// This file finds bridges in a given area.
+private ["_bridges", "_pos", "_size", "_classnames"];
+_pos = _this select 0;
+_size = _this select 1;
 
-if (isNil "dep_directory") then
-{ 
-    dep_directory = "DEP\"; 
-};
-
-dep_fnc_disable_ied         = compile preprocessFileLineNumbers (dep_directory+"functions\disable_ied.sqf");
-dep_fnc_disable_ied_action  = compile preprocessFileLineNumbers (dep_directory+"functions\disable_ied_action.sqf");
-
-[] execVM dep_directory+"functions\common.sqf";
-
-if (isNil "dep_ready") then 
-{
-    waitUntil {!isNil "dep_ready"};
-    if (dep_ready) then
-    {
-        systemChat "Dynamic Enemy Population initialized.";
-    };
-};
-
-if !(dep_ready) then
-{
-	systemChat "Error while initilazing Dynamic Enemy Population!";
-};
+_pos set [2, 0];
+_classnames = ["Land_Bridge_HighWay_PathLod_F", "Land_Bridge_Concrete_PathLod_F", "Land_Bridge_Asphalt_PathLod_F", "Land_Bridge_01_PathLod_F"];
+_bridges = nearestObjects [_pos, _classnames, _size];
+_bridges;

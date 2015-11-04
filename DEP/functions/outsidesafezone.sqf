@@ -16,11 +16,14 @@
 */
 // This file returns true is a position is outside the safe zone.
 
-private ["_pos","_dist","_outside"];
+private ["_pos","_dist","_outside", "_margin"];
 _pos  = _this select 0;
 _dist = if (count _this > 1) then { _this select 1; } else { dep_safe_rad; };
+_margin = if (count _this > 2) then { _this select 2; } else { dep_map_margin; };
 
 _outside = true;
+
+// Check if location in a safe zone
 if (count dep_safe_zone > 0) then 
 {
     if (typeName (dep_safe_zone select 0) == "ARRAY") then 
@@ -37,5 +40,14 @@ if (count dep_safe_zone > 0) then
             _outside = false;
         };
     };
+};
+
+// Check if location in map margin
+if (_outside) then
+{
+	if ((_pos distance dep_map_center) > (dep_map_radius - _margin)) then
+	{
+		_outside = false;
+	};
 };
 _outside;

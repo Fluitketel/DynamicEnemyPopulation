@@ -138,6 +138,13 @@ _totalobjects = [];
         _totalenemies = _totalenemies + 1;
         _obj setDir (_x select 1);
         _obj setDamage (_x select 3);
+		_restore_init = (_x select 6);
+		if (typeName _restore_init == "ARRAY") then
+		{
+			_vars = [_obj];
+			_vars = _vars + (_restore_init select 0);
+			_vars spawn (_restore_init select 1);
+		};
     } foreach _group;
     switch ((_location select 1)) do
     {

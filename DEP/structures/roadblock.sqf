@@ -83,51 +83,17 @@ if (random 1 > 0.5) then {
     _prop setDir (_dir - 90);
 };
 
-_prop = objNull;
-_newpos = (position _gate) findEmptyPosition[0, 30, "Box_East_Ammo_F"];  
-switch (dep_side) do 
-{
-    case east: {
-        _prop = (["Box_East_Ammo_F", "Box_East_AmmoOrd_F", "Box_East_Grenades_F", "Box_East_Ammo_F"] call BIS_fnc_selectRandom) createVehicle _newpos;
-    };
-    case west: {
-        _prop = (["Box_NATO_Ammo_F", "Box_NATO_AmmoOrd_F", "Box_NATO_Grenades_F", "Box_NATO_Ammo_F"] call BIS_fnc_selectRandom) createVehicle _newpos;
-    };
-    default {
-        _prop = (["Box_IND_Ammo_F", "Box_IND_AmmoOrd_F", "Box_IND_Grenades_F", "Box_IND_Ammo_F"] call BIS_fnc_selectRandom) createVehicle _newpos;
-    };
-};
+_newpos = (position _gate) findEmptyPosition[0, 30, dep_box_ammo];
+_prop = ([dep_box_ammo, dep_box_special, dep_box_weapons, dep_box_ord] call BIS_fnc_selectRandom) createVehicle _newpos;  
 _prop setDir (_dir + 90);
 sleep 0.02;
 
 _newpos = [_gate, 6, _dir + 90] call BIS_fnc_relPos;
 _gun1 = objNull;
 if (random 1 < 0.3) then {
-    switch (dep_side) do 
-    {
-        case east: {
-            _gun1 = "O_GMG_01_high_F" createVehicle _newpos;
-        };
-        case west: {
-            _gun1 = "B_GMG_01_high_F" createVehicle _newpos;
-        };
-        default {
-            _gun1 = "I_GMG_01_high_F" createVehicle _newpos;
-        };
-    };
+    _gun1 = dep_static_gmg createVehicle _newpos;
 } else {
-    switch (dep_side) do 
-    {
-        case east: {
-            _gun1 = "O_HMG_01_high_F" createVehicle _newpos;
-        };
-        case west: {
-            _gun1 = "B_HMG_01_high_F" createVehicle _newpos;
-        };
-        default {
-            _gun1 = "I_HMG_01_high_F" createVehicle _newpos;
-        };
-    };
+    _gun1 = dep_static_hmg createVehicle _newpos;
 };
 _objects = _objects + [_gun1];
 _gun1 setDir _dir;

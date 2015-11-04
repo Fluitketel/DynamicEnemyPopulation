@@ -98,31 +98,9 @@ doStop (units _campgroup);
         _newpos = ATLToASL _x;
         _gun1 = objNull;
         if (random 1 < 0.3) then {
-            switch (dep_side) do 
-            {
-                case east: {
-                    _gun1 = "O_GMG_01_high_F" createVehicle _newpos;
-                };
-                case west: {
-                    _gun1 = "B_GMG_01_high_F" createVehicle _newpos;
-                };
-                default {
-                    _gun1 = "I_GMG_01_high_F" createVehicle _newpos;
-                };
-            };
+            _gun1 = dep_static_gmg createVehicle _newpos;
         } else {
-            switch (dep_side) do 
-            {
-                case east: {
-                    _gun1 = "O_HMG_01_high_F" createVehicle _newpos;
-                };
-                case west: {
-                    _gun1 = "B_HMG_01_high_F" createVehicle _newpos;
-                };
-                default {
-                    _gun1 = "I_HMG_01_high_F" createVehicle _newpos;
-                };
-            };
+            _gun1 = dep_static_hmg createVehicle _newpos;
         };
         _gun1 setPosASL _newpos;
         _gun1 setDir _dir;

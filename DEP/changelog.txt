@@ -1,3 +1,17 @@
+Version 0.5.0
+=============
+* Added: possibility to specify class names for static weapons and ammo boxes.
+* Added: map support for Kunduz and Zargabad
+* Added: new enemy camp
+* Added: new enemy location type: ambush
+* Added: support for ACE defusal kit
+* General code optimization
+
+Version 0.4.1
+=============
+* Changed: optimized vehicle patrol paths
+* Fixed: enemy locations would sometimes overlap with safe zones
+
 Version 0.4.0
 =============
 * Added: vanilla IEDs

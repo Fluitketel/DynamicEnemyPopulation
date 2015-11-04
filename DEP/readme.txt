@@ -1,8 +1,8 @@
 DYNAMIC ENEMY POPULATION 
   by Fluit 
     bugs & feedback :   https://github.com/Fluitketel/DynamicEnemyPopulation or fluitketel@outlook.com
-      last revision :   2015-06-20
-        version     :   0.4.0
+      last revision :   2015-11-04
+        version     :   0.5.0
     
 This script creates enemies all across the map including:
  - units in buildings
@@ -34,8 +34,11 @@ Reference the following list for the color codes:
 - Yellow        residential
 - Blue lines    safe zones
 
-Thanks to
+Settings
+==============================
+For a complete list of possible settings visit:
+https://fluitarma.wordpress.com/dep-settings/
+
+Credits
 ============================== 
-I would like to thank the Dedicated Rejects community for the powerful server to test and play on. 
-Special thanks to the Arma section for helping me improve my scripts and for all the fun we have while playing!
- -Fluit
+I would like to thank all my Arma buddies for helping me improve my scripts and for all the fun we have while playing!

@@ -21,7 +21,7 @@ _wire = _this select 0;
 
 if (vehicle player != player)                   exitWith { false; };
 if (_target distance player > 3)                exitWith { false; };
-if !("ToolKit" in backpackItems player)         exitWith { false; };
+if (!("ToolKit" in backpackItems player) && !("ACE_DefusalKit" in items player)) exitWith { false; };
 if !(_target getVariable "IED")                 exitWith { false; };
 if (_wire in (_target getVariable "cut_wires")) exitWith { false; };
 if (_target getVariable "workingon")            exitWith { false; };

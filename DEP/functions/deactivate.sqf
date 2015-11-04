@@ -77,6 +77,11 @@ if (!(_location select 7)) then {
                 {
                     _pos = _x getVariable "dep_position";
                 };
+				_restore_init = "";
+				if !(isNil {_x getVariable "dep_restore_init"}) then
+                {
+                    _restore_init = _x getVariable "dep_restore_init";
+                };
                 _loccacheitem = [];
                 _loccacheitem set [0, _pos];                    // Position
                 _loccacheitem set [1, direction _x];            // Direction
@@ -84,6 +89,7 @@ if (!(_location select 7)) then {
                 _loccacheitem set [3, damage _x];               // Health
                 _loccacheitem set [4, []];                      // Crew
                 _loccacheitem set [5, _waypoints];              // Waypoints
+                _loccacheitem set [6, _restore_init];           // Code to execute on restore
                 _loccachegrp = _loccachegrp + [_loccacheitem];
             };
         } foreach (units _group); // foreach unit in group

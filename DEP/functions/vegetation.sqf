@@ -1,4 +1,4 @@
-/*  Copyright 2014 Fluit
+/*  Copyright 2015 Fluit
     
     This file is part of Dynamic Enemy Population.
 
@@ -14,28 +14,22 @@
     You should have received a copy of the GNU General Public License
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
-// This is the init file that should run on every client.
+// This file finds vegetation in a given area.
 
-if (isNil "dep_directory") then
-{ 
-    dep_directory = "DEP\"; 
-};
+private ["_objects", "_validobjects", "_pos", "_size", "_keywords"];
+_pos = _this select 0;
+_size = _this select 1;
 
-dep_fnc_disable_ied         = compile preprocessFileLineNumbers (dep_directory+"functions\disable_ied.sqf");
-dep_fnc_disable_ied_action  = compile preprocessFileLineNumbers (dep_directory+"functions\disable_ied_action.sqf");
-
-[] execVM dep_directory+"functions\common.sqf";
-
-if (isNil "dep_ready") then 
+_pos set [2, 0];
+_keywords = ["b_", "t_"];
+_objects = nearestObjects [_pos, [], _size];
+_validobjects = [];
 {
-    waitUntil {!isNil "dep_ready"};
-    if (dep_ready) then
-    {
-        systemChat "Dynamic Enemy Population initialized.";
-    };
-};
-
-if !(dep_ready) then
-{
-	systemChat "Error while initilazing Dynamic Enemy Population!";
-};
+	_ok = false;
+	_object = _x;   
+	{
+		_result = [_x, (str _object)] call BIS_fnc_inString;
+		if (_result) exitWith { _validobjects = _validobjects + [_object];  };
+	} forEach _keywords;
+} forEach _objects;		
+_validobjects;

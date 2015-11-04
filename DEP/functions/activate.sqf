@@ -47,13 +47,27 @@ if ((_location select 1) == "roadblock") then {
 
 if ((_location select 1) == "bunker") then {
     _result = [];
-    _type = ["at","barracks1","barracks2"] call BIS_fnc_selectRandom;
+    _type = ["at","barracks1","barracks2","ins_camp1"] call BIS_fnc_selectRandom;
     switch (_type) do
     {
         case "at": {        _result = [_pos, random 360] call dep_fnc_atcamp; };
         case "barracks1": { _result = [_pos, random 360] call dep_fnc_barracks1; };
         case "barracks2": { _result = [_pos, random 360] call dep_fnc_barracks2; };
         case "mortar": {    _result = [_pos, random 360] call dep_fnc_mortarcamp; };
+        case "ins_camp1": { _result = [_pos, random 360] call dep_fnc_insurgentcamp1; };
+    };
+    _totalenemies = _totalenemies + (_result select 0);
+    _groups = _groups + (_result select 1);
+    _objects = _objects + (_result select 2);
+};
+
+if ((_location select 1) == "ambush") then {
+    _result = [];
+    _type = ["ambush1","ambush2"] call BIS_fnc_selectRandom;
+    switch (_type) do
+    {
+        case "ambush1": { _result = [_pos, (_location select 9)] call dep_fnc_ambush1; };
+        case "ambush2": { _result = [_pos, (_location select 9)] call dep_fnc_ambush2; };
     };
     _totalenemies = _totalenemies + (_result select 0);
     _groups = _groups + (_result select 1);
@@ -61,7 +75,7 @@ if ((_location select 1) == "bunker") then {
 };
 
 // Spawn units
-if !((_location select 1) in ["patrol","bunker","roadblock"]) then {
+if !((_location select 1) in ["patrol","bunker","roadblock", "ambush"]) then {
     _validhouses = [_pos, _size] call dep_fnc_enterablehouses;
     _num_houses = (count _validhouses);
     _groupsperlocation = (ceil (random _num_houses));
@@ -236,7 +250,7 @@ if ((_location select 1) in ["patrol"]) then {
             _groups = _groups + [_depgroup];
             _units = [];
             _soldiername = "";
-            if (_vehname in ["I_G_offroad_01_armed_F", "I_G_Van_01_transport_F"]) then {
+            if !(_veh isKindOf "Tank" || _veh isKindOf "Wheeled_APC_F") then {
                 _units = dep_guer_units;
                 _soldiername = _units call BIS_fnc_selectRandom;
             } else {
@@ -267,8 +281,8 @@ if ((_location select 1) in ["patrol"]) then {
                 _totalenemies = _totalenemies + 1;
             };
             // Put soldiers in APC
-            if (_vehname in ["I_APC_tracked_03_cannon_F","I_APC_Wheeled_03_cannon_F","I_G_Van_01_transport_F"]) then {
-                _freeCargoPositions = _veh emptyPositions "cargo";
+			_freeCargoPositions = _veh emptyPositions "cargo";
+            if (_freeCargoPositions >= 1) then {
                 _freeCargoPositions = round random _freeCargoPositions;
                 for "_y" from 1 to _freeCargoPositions do {
                     _soldiername = _units call BIS_fnc_selectRandom;

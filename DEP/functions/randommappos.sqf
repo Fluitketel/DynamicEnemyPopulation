@@ -21,7 +21,10 @@ _position = [];
 _width = (dep_map_center select 0) * 2;
 _height = (dep_map_center select 1) * 2;
 
-_position set [0, random _width];
-_position set [1, random _height];
+_width = _width - (dep_map_margin * 2);
+_height = _height - (dep_map_margin * 2);
+
+_position set [0, dep_map_margin + (random _width)];
+_position set [1, dep_map_margin + (random _height)];
 
 _position;

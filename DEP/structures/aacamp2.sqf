@@ -33,19 +33,7 @@ _campgroup = createGroup dep_side;
 _campgroup setFormDir _dir + 180;
 _groups = _groups + [_campgroup];
 
-_ammo = objNull;
-switch (dep_side) do 
-{
-    case east: {
-        _ammo = "Box_East_WpsLaunch_F" createVehicle _pos;
-    };
-    case west: {
-        _ammo = "Box_NATO_WpsLaunch_F" createVehicle _pos;
-    };
-    default {
-        _ammo = "Box_IND_WpsLaunch_F" createVehicle _pos;
-    };
-};
+_ammo = dep_box_launchers createVehicle _pos;
 _ammo setDir _dir;
 
 _newpos = [_ammo, 6, _dir + 90] call BIS_fnc_relPos;
@@ -73,19 +61,7 @@ _tower = (["Land_HBarrier_5_F","Land_Cargo_House_V3_F"] call BIS_fnc_selectRando
 _tower setDir _dir;
 
 _newpos = [_ammo, 5, _dir + 180] call BIS_fnc_relPos;
-_gun1 = objNull;
-switch (dep_side) do 
-{
-    case east: {
-        _gun1 = "O_static_AA_F" createVehicle _newpos;
-    };
-    case west: {
-        _gun1 = "B_static_AA_F" createVehicle _newpos;
-    };
-    default {
-        _gun1 = "I_static_AA_F" createVehicle _newpos;
-    };
-};
+_gun1 = dep_static_aa createVehicle _newpos;
 waitUntil {alive _gun1};
 _gun1 setDir _dir + 180;
 _objects = _objects + [_gun1];

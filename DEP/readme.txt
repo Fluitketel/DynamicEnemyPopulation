@@ -1,8 +1,8 @@
 DYNAMIC ENEMY POPULATION 
   by Fluit 
     bugs & feedback :   https://github.com/Fluitketel/DynamicEnemyPopulation or fluitketel@outlook.com
-      last revision :   2015-11-04
-        version     :   0.5.0
+      last revision :   2015-12-05
+            version :   0.5.1
     
 This script creates enemies all across the map including:
  - units in buildings

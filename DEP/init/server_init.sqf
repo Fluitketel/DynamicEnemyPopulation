@@ -31,7 +31,7 @@ if (dep_debug) then {
     waitUntil {time > 0};
 };
 
-private ["_locations","_pos","_flatPos","_building","_countunits"];
+private ["_locations","_pos","_flatPos","_building","_countunits","_airports"];
 "Initializing DEP . . ." call dep_fnc_log;
 
 _totaltime = 0;
@@ -651,6 +651,9 @@ if (dep_debug) then {
 ["DEP ready with %1 locations", dep_num_loc] spawn dep_fnc_log;
 dep_ready = true;
 publicVariable "dep_ready";
+
+// Create air patrols
+[] spawn dep_fnc_airpatrols;
 
 _countunits = false;
 while {true} do 

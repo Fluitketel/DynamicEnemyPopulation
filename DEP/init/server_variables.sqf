@@ -60,6 +60,7 @@ if (isNil "dep_zone_markers")       then { dep_zone_markers     = []; };        
 if (isNil "dep_civ_fail_script")    then { dep_civ_fail_script 	= ""; };            // Code executed when too many civilians are killed
 if (isNil "dep_veh_pat_rad")    	then { dep_veh_pat_rad 		= 800; };           // Radius of vehicle patrol zones
 if (isNil "dep_map_margin")    		then { dep_map_margin 		= 400; };           // Distance in meters from the edges of the map where enemies can spawn
+if (isNil "dep_air_patrols")    	then { dep_air_patrols 		= 1; };           	// Number of patroling air vehicles
 if (isNil "dep_safe_zone") then 
 { 
     if (getMarkerColor "respawn_west" != "" && dep_own_side == west) then { dep_safe_zone = getMarkerPos "respawn_west"; };
@@ -122,6 +123,7 @@ switch (dep_side) do
 		if (isNil "dep_box_ord") 			then { dep_box_ord			= "Box_East_AmmoOrd_F"; };
         
         if (isNil "dep_ground_vehicles") 	then { dep_ground_vehicles 	= ["O_MRAP_02_hmg_F","O_MRAP_02_gmg_F","O_APC_Tracked_02_cannon_F","O_G_Van_01_transport_F","O_APC_Wheeled_02_rcws_F","O_G_Offroad_01_armed_F"]; };
+        if (isNil "dep_air_vehicles") 		then { dep_air_vehicles 	= ["O_Heli_Attack_02_F","O_Heli_Light_02_F","O_Plane_CAS_02_F"]; };
     };
     case west: {
         if (isNil "dep_u_g_soldier")    	then { dep_u_g_soldier  	= "B_G_Soldier_F"; };
@@ -158,6 +160,7 @@ switch (dep_side) do
 		if (isNil "dep_box_ord") 			then { dep_box_ord 			= "Box_NATO_AmmoOrd_F"; };
         
         if (isNil "dep_ground_vehicles") 	then { dep_ground_vehicles 	= ["B_MRAP_01_hmg_F","B_MRAP_01_gmg_F","B_APC_Wheeled_01_cannon_F","B_G_Van_01_transport_F","B_APC_Tracked_01_AA_F","B_G_Offroad_01_armed_F"]; };
+		if (isNil "dep_air_vehicles") 		then { dep_air_vehicles 	= ["B_Heli_Attack_01_F","B_Heli_Light_01_armed_F","B_Plane_CAS_01_F"]; };
     };
     default {
         if (isNil "dep_u_g_soldier")    	then { dep_u_g_soldier  	= "I_G_Soldier_F"; };
@@ -194,6 +197,7 @@ switch (dep_side) do
 		if (isNil "dep_box_ord") 			then { dep_box_ord			= "Box_IND_AmmoOrd_F"; };
         
         if (isNil "dep_ground_vehicles") 	then { dep_ground_vehicles 	= ["I_MRAP_03_hmg_F","I_MRAP_03_gmg_F","I_APC_tracked_03_cannon_F","I_G_Van_01_transport_F","I_APC_Wheeled_03_cannon_F","I_G_offroad_01_armed_F"]; };
+		if (isNil "dep_air_vehicles") 		then { dep_air_vehicles 	= ["I_Heli_light_03_F","I_Plane_Fighter_03_CAS_F"]; };
     };
 };
 

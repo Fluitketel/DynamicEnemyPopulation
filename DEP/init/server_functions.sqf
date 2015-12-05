@@ -54,3 +54,4 @@ dep_fnc_disable_ied             = compile preprocessFileLineNumbers (dep_directo
 dep_fnc_disable_ied_action      = compile preprocessFileLineNumbers (dep_directory+"functions\disable_ied_action.sqf");
 dep_fnc_bridges      			= compile preprocessFileLineNumbers (dep_directory+"functions\bridges.sqf");
 dep_fnc_vegetation      		= compile preprocessFileLineNumbers (dep_directory+"functions\vegetation.sqf");
+dep_fnc_airpatrols      		= compile preprocessFileLineNumbers (dep_directory+"functions\airpatrols.sqf");

@@ -1,3 +1,7 @@
+Version 0.5.3
+=============
+* Fixed: Error in expression
+
 Version 0.5.2
 =============
 * Added: new type of roadblock

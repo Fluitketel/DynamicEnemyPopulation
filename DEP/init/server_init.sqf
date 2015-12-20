@@ -657,21 +657,21 @@ publicVariable "dep_ready";
 
 _countunits = false;
 while {true} do 
-{    
-    _units = [];
+{            
+    dep_players = [];
     if (isMultiplayer) then 
     {
-        _units = playableUnits;
+        dep_players = playableUnits;
     } else {
         {
             if ((side _x) == dep_own_side) then { 
-                _units = _units + [_x];
+                dep_players = dep_players + [_x];
             };
         } forEach allUnits;
     };
     
     // Dynamic max amount of ai at locations
-    dep_num_players = count _units;
+    dep_num_players = count dep_players;
     dep_max_ai_loc = round (((dep_num_players * dep_aim_player) + 1) * dep_base_ai_loc);
     
     // Also check connected UAV's
@@ -679,8 +679,8 @@ while {true} do
     {
         _uav = getConnectedUAV _x;
         if !(isNull _uav) then { _UAVs = _UAVs + [_uav]; };
-    } forEach _units;
-    _units = _units + _UAVs;
+    } forEach dep_players;
+    dep_players = dep_players + _UAVs;
             
     for "_g" from 0 to (dep_num_loc - 1) do {
         _location   = dep_locations select _g;
@@ -748,8 +748,7 @@ while {true} do
         } foreach dep_act_bl;
         
         // Check if at least 1 player is close
-        if (!_blacklist) then {
-                        
+        if (!_blacklist) then {            
             _closest = 999999;
             {
                 _speedok = true;
@@ -764,7 +763,7 @@ while {true} do
                     _distance = (getPos _x) distance _pos;
                     if (_distance < _closest) then { _closest = _distance; };
                 };
-            } forEach _units;
+            } forEach dep_players;
             
             if (_type == "antiair") then {
                 // Anti air locations have 3x greater activation distance

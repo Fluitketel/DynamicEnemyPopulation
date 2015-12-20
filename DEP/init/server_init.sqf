@@ -31,7 +31,7 @@ if (dep_debug) then {
     waitUntil {time > 0};
 };
 
-private ["_locations","_pos","_flatPos","_building","_countunits","_airports"];
+private ["_locations","_pos","_flatPos","_building","_countunits","_units"];
 "Initializing DEP . . ." call dep_fnc_log;
 
 _totaltime = 0;
@@ -197,7 +197,7 @@ if (dep_roadblocks > 0) then
 		_valid = false;
 		if ((count dep_roads) == 0) exitWith { "Not enough roads!" spawn dep_fnc_log; };
 		while {!_valid} do {
-			if ((time - _starttime) > 60) exitWith {
+			if ((time - _starttime) > 30) exitWith {
 				_fckit = true;
 			};
 			_road = dep_roads call BIS_fnc_selectRandom;
@@ -337,7 +337,7 @@ if (dep_aa_camps > 0) then
 	for "_c" from 1 to dep_aa_camps do {
 		_valid = false;
 		while {!_valid} do {
-			if ((time - _starttime) > 60) exitWith {
+			if ((time - _starttime) > 30) exitWith {
 				_fckit = true;
 			};
 			_pos = [] call dep_fnc_random_position;
@@ -402,7 +402,7 @@ if (dep_patrols > 0) then
 	for [{_x=1}, {_x<=dep_patrols}, {_x=_x+1}] do {
 		_valid = false;
 		while {!_valid} do {
-			if ((time - _starttime) > 60) exitWith {
+			if ((time - _starttime) > 30) exitWith {
 				_fckit = true;
 			};
 			_road = dep_roads call BIS_fnc_selectRandom;
@@ -467,7 +467,7 @@ if (dep_bunkers > 0) then
 	for [{_x = 0}, {_x < dep_bunkers}, {_x = _x + 1}] do {
 		_valid = false;
 		while {!_valid} do {
-			if ((time - _starttime) > 60) exitWith {
+			if ((time - _starttime) > 30) exitWith {
 				_fckit = true;
 			};
 			_pos = [] call dep_fnc_random_position;
@@ -658,6 +658,30 @@ publicVariable "dep_ready";
 _countunits = false;
 while {true} do 
 {    
+    _units = [];
+    if (isMultiplayer) then 
+    {
+        _units = playableUnits;
+    } else {
+        {
+            if ((side _x) == dep_own_side) then { 
+                _units = _units + [_x];
+            };
+        } forEach allUnits;
+    };
+    
+    // Dynamic max amount of ai at locations
+    dep_num_players = count _units;
+    dep_max_ai_loc = round (((dep_num_players * dep_aim_player) + 1) * dep_base_ai_loc);
+    
+    // Also check connected UAV's
+    _UAVs = [];
+    {
+        _uav = getConnectedUAV _x;
+        if !(isNull _uav) then { _UAVs = _UAVs + [_uav]; };
+    } forEach _units;
+    _units = _units + _UAVs;
+            
     for "_g" from 0 to (dep_num_loc - 1) do {
         _location   = dep_locations select _g;
         _pos        = _location select 0;
@@ -725,30 +749,7 @@ while {true} do
         
         // Check if at least 1 player is close
         if (!_blacklist) then {
-            _units = [];
-            if (isMultiplayer) then 
-            {
-                _units = playableUnits;
-            } else {
-                {
-                    if ((side _x) == dep_own_side) then { 
-                        _units = _units + [_x];
-                    };
-                } forEach allUnits;
-            };
-            
-            // Dynamic max amount of ai at locations
-            dep_num_players = count _units;
-            dep_max_ai_loc = round (((dep_num_players * dep_aim_player) + 1) * dep_base_ai_loc);
-            
-            // Also check connected UAV's
-            _UAVs = [];
-            {
-                _uav = getConnectedUAV _x;
-                if !(isNull _uav) then { _UAVs = _UAVs + [_uav]; };
-            } forEach _units;
-            _units = _units + _UAVs;
-            
+                        
             _closest = 999999;
             {
                 _speedok = true;

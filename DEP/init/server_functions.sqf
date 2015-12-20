@@ -16,7 +16,7 @@
 */
 // This file creates all the server functions
 
-dep_fnc_log         			= compile preprocessFileLineNumbers (dep_directory+"functions\log.sqf");
+dep_fnc_log                     = compile preprocessFileLineNumbers (dep_directory+"functions\log.sqf");
 dep_fnc_random_position         = compile preprocessFileLineNumbers (dep_directory+"functions\randommappos.sqf");
 dep_fnc_outsidesafezone         = compile preprocessFileLineNumbers (dep_directory+"functions\outsidesafezone.sqf");
 dep_fnc_createunit              = compile preprocessFileLineNumbers (dep_directory+"functions\createunit.sqf");
@@ -34,7 +34,8 @@ dep_fnc_buildingpositions       = compile preprocessFileLineNumbers (dep_directo
 dep_fnc_vehicledamage           = compile preprocessFileLineNumbers (dep_directory+"functions\vehicledamage.sqf");
 dep_fnc_nearestroad             = compile preprocessFileLineNumbers (dep_directory+"functions\nearestroad.sqf");
 dep_fnc_roaddir                 = compile preprocessFileLineNumbers (dep_directory+"functions\roaddir.sqf");
-dep_fnc_roadblock               = compile preprocessFileLineNumbers (dep_directory+"structures\roadblock.sqf");
+dep_fnc_roadblock1              = compile preprocessFileLineNumbers (dep_directory+"structures\roadblock1.sqf");
+dep_fnc_roadblock2              = compile preprocessFileLineNumbers (dep_directory+"structures\roadblock2.sqf");
 dep_fnc_ambush1               	= compile preprocessFileLineNumbers (dep_directory+"structures\ambush1.sqf");
 dep_fnc_ambush2               	= compile preprocessFileLineNumbers (dep_directory+"structures\ambush2.sqf");
 dep_fnc_atcamp                  = compile preprocessFileLineNumbers (dep_directory+"structures\atcamp.sqf");
@@ -52,6 +53,7 @@ dep_fnc_garrison                = compile preprocessFileLineNumbers (dep_directo
 dep_fnc_enemyspawnprotect       = compile preprocessFileLineNumbers (dep_directory+"functions\enemyspawnprotect.sqf");
 dep_fnc_disable_ied             = compile preprocessFileLineNumbers (dep_directory+"functions\disable_ied.sqf");
 dep_fnc_disable_ied_action      = compile preprocessFileLineNumbers (dep_directory+"functions\disable_ied_action.sqf");
-dep_fnc_bridges      			= compile preprocessFileLineNumbers (dep_directory+"functions\bridges.sqf");
-dep_fnc_vegetation      		= compile preprocessFileLineNumbers (dep_directory+"functions\vegetation.sqf");
-dep_fnc_airpatrols      		= compile preprocessFileLineNumbers (dep_directory+"functions\airpatrols.sqf");
+dep_fnc_bridges                 = compile preprocessFileLineNumbers (dep_directory+"functions\bridges.sqf");
+dep_fnc_vegetation              = compile preprocessFileLineNumbers (dep_directory+"functions\vegetation.sqf");
+dep_fnc_airpatrols              = compile preprocessFileLineNumbers (dep_directory+"functions\airpatrols.sqf");
+dep_fnc_scriptedspawnpos        = compile preprocessFileLineNumbers (dep_directory+"functions\scriptedspawnpos.sqf");

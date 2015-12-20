@@ -291,7 +291,7 @@ switch (dep_worldname) do {
         if (isNil "dep_aa_camps")   then { dep_aa_camps    = 8; };
         if (isNil "dep_patrols")    then { dep_patrols     = 20; };
         if (isNil "dep_bunkers")    then { dep_bunkers     = 20; };
-        if (isNil "dep_military")   then { dep_military    = 6; };
+        if (isNil "dep_military")   then { dep_military    = 2; };
 		if (isNil "dep_ambushes")   then { dep_ambushes    = 5; };
     };
     case "woodland_acr": {
@@ -331,7 +331,7 @@ switch (dep_worldname) do {
         if (isNil "dep_map_center") then { dep_map_center  = getArray(configFile >> "CfgWorlds" >> worldName >> "centerPosition"); };
         if (typeName dep_map_center != "ARRAY") exitWith 
         { 
-            diag_log "DEP INIT FAILED: Could not detect world center.";
+            diag_log "DEP INIT FAILED: Could not detect map center.";
             dep_ready = false;
             publicVariable "dep_ready";
         };

@@ -39,7 +39,13 @@ _rubble_pool = ["Land_Tyres_F","Land_GarbageBags_F","Land_JunkPile_F","Land_Garb
 _ied_pool = ["IEDLandBig_Remote_Ammo","IEDLandSmall_Remote_Ammo","IEDUrbanBig_Remote_Ammo","IEDUrbanSmall_Remote_Ammo"];
 
 if ((_location select 1) == "roadblock") then {
-    _result = [_pos, _location select 9] call dep_fnc_roadblock;
+    _result = [];
+    _type = ["roadblock1","roadblock2"] call BIS_fnc_selectRandom;
+    switch (_type) do
+    {
+        case "roadblock1": { _result = [_pos, _location select 9] call dep_fnc_roadblock1; };
+        case "roadblock2": { _result = [_pos, _location select 9] call dep_fnc_roadblock2; };
+    };
     _totalenemies = _totalenemies + (_result select 0);
     _groups = _groups + (_result select 1);
     _objects = _objects + (_result select 2);

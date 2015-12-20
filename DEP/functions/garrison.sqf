@@ -15,11 +15,20 @@
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
 // This file tells a group to garrison in the nearest building.
-private ["_house","_group","_pos","_buildpos","_newbuildpos"];
+private ["_house","_group","_pos","_buildpos","_newbuildpos","_range"];
 _group  = _this select 0;
+_range = 0;
+if ((count _this) > 1) then { _range = _this select 1; };
 _pos    = getPos (leader _group);
 
-_validhouses = [_pos] call dep_fnc_findnearhouses;
+_validhouses = [];
+if (_range == 0) then 
+{
+	_validhouses = [_pos] call dep_fnc_findnearhouses;
+} else {
+	_validhouses = [_pos, _range] call dep_fnc_findnearhouses;
+};
+
 if ((count _validhouses) > 0) then {
     _house = _validhouses call BIS_fnc_selectRandom;
     _buildpos = _house call dep_fnc_buildingpositions;

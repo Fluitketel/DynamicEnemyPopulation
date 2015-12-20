@@ -1,3 +1,13 @@
+Version 0.5.2
+=============
+* Added: new type of roadblock
+* Changed: now able to edit air patrol setting "on the fly".
+* Changed: air patrol interval according to map size (small maps have a greater interval)
+* Changed: air patrols stop when no players are on the server
+* Fixed: planes fly higher than helicopters to prevent them from crashing into mountains
+* Fixed: unable to find all military locations on Chernarus (lowered default setting)
+* Fixed: removed barbed wire on roadblocks to prevent an issue with ACE
+
 Version 0.5.1
 =============
 * Added: dynamic air patrols.

@@ -14,20 +14,20 @@
     You should have received a copy of the GNU General Public License
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
-// This file finds the closest enterable houses.
-private ["_pos", "_validhouses","_maxrange","_range","_c"];
-_pos = _this select 0;
-_maxrange = 90;
-if ((count _this) > 1) then { _maxrange = _this select 1; };
+// This file fetches scripted spawn positions.
+private ["_pos","_range","_spawnpos","_arrows","_delete"];
+_pos  = _this select 0;
+_range  = _this select 1;
+_delete = if ((count _this) > 2) then { _this select 2 } else { false };
 
-_validhouses = [];
-_c = 1;
-_range = 4;
-while {(count _validhouses) == 0 && _range <= _maxrange} do
+_arrows = nearestObjects [_pos, ["Sign_Arrow_Blue_F"], _range];
+_spawnpos = [];
 {
-	_validhouses = [_pos, _range] call dep_fnc_enterablehouses;
-	_c = _c + 1;
-	_range = _range * _c;
-};
+	_spawnpos = _spawnpos + [(getPosATL _x)];
+    if (_delete) then
+    {
+        deleteVehicle _x;
+    };
+} forEach _arrows;
 
-_validhouses;
+_spawnpos;

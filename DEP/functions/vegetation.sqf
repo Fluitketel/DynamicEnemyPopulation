@@ -1,4 +1,4 @@
-/*  Copyright 2015 Fluit
+/*  Copyright 2016 Fluit
     
     This file is part of Dynamic Enemy Population.
 

@@ -1,3 +1,12 @@
+Version 0.6.0
+=============
+* Added: Tanoa map support
+* Added: new enemy zone "town occupation"
+* Added: new enemy zone "forest patrol"
+* Added: enemy zones can respawn (dep_respawn_timeout)
+* Changed: enemies are spread more across the zone instead of spawning the same house
+* Fixed: finding roads was including jungle paths 
+
 Version 0.5.3
 =============
 * Fixed: Error in expression

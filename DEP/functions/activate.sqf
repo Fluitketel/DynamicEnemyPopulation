@@ -35,8 +35,8 @@ _groups = [];
 _civilians = [];
 _totalenemies = 0;
 
-_rubble_pool = ["Land_Tyres_F","Land_GarbageBags_F","Land_JunkPile_F","Land_GarbageContainer_closed_F","Land_GarbageContainer_open_F","Land_WoodenBox_F"];
-_ied_pool = ["IEDLandBig_Remote_Ammo","IEDLandSmall_Remote_Ammo","IEDUrbanBig_Remote_Ammo","IEDUrbanSmall_Remote_Ammo"];
+//_rubble_pool = ["Land_Tyres_F","Land_GarbageBags_F","Land_JunkPile_F","Land_GarbageContainer_closed_F","Land_GarbageContainer_open_F","Land_WoodenBox_F"];
+_rubble_pool = ["Land_GarbageHeap_01_F","Land_GarbageBags_F","Land_JunkPile_F","Land_GarbageHeap_02_F","Land_GarbageHeap_03_F","Land_GarbageHeap_04_F"];
 
 if ((_location select 1) == "roadblock") then {
     _result = [];
@@ -46,6 +46,13 @@ if ((_location select 1) == "roadblock") then {
         case "roadblock1": { _result = [_pos, _location select 9] call dep_fnc_roadblock1; };
         case "roadblock2": { _result = [_pos, _location select 9] call dep_fnc_roadblock2; };
     };
+    _totalenemies = _totalenemies + (_result select 0);
+    _groups = _groups + (_result select 1);
+    _objects = _objects + (_result select 2);
+};
+
+if ((_location select 1) == "forpat") then {
+    _result = [_location] call dep_fnc_forest_patrol1;
     _totalenemies = _totalenemies + (_result select 0);
     _groups = _groups + (_result select 1);
     _objects = _objects + (_result select 2);
@@ -81,71 +88,51 @@ if ((_location select 1) == "ambush") then {
 };
 
 // Spawn units
-if !((_location select 1) in ["patrol","bunker","roadblock", "ambush"]) then {
+if !((_location select 1) in ["patrol","forpat","bunker","roadblock", "ambush"]) then {
     _validhouses = [_pos, _size] call dep_fnc_enterablehouses;
-    _num_houses = (count _validhouses);
-    _groupsperlocation = (ceil (random _num_houses));
-    if (_groupsperlocation < (_num_houses / 2)) then { _groupsperlocation = ceil(_num_houses / 2); };
-
-    for "_c" from 1 to _groupsperlocation do 
-	{
-		// Amount of enemies to spawn
-		_enemyamount = 4 + (round random 4);
-		if ((_totalenemies +_enemyamount) > dep_max_ai_loc) exitWith 
-		{ 
-			["Location %1: spawning of %4 enemies not allowed, already spawned %2 of max %3.", _this, _totalenemies, dep_max_ai_loc, _enemyamount] spawn dep_fnc_log; 
-		};
-		
-		_house = _validhouses call BIS_fnc_selectRandom;
-        _validhouses = _validhouses - [_house];
-        
-        // Get positions in building
-        _buildpos = _house call dep_fnc_buildingpositions;
-        
-        _depgroup = createGroup dep_side;
-        _groups = _groups + [_depgroup];
-        _totalenemies = _totalenemies + _enemyamount;
-        
-        for "_e" from 1 to _enemyamount do {
-            _newbuildpos = [];
-            if ((count _buildpos) > 0) then {
-                _newbuildpos = _buildpos call BIS_fnc_selectRandom;
-                _buildpos = _buildpos - [_newbuildpos];
-            } else {
-                _newbuildpos = (getPos _house) findEmptyPosition [0,20];
-                if ((count _newbuildpos) == 0) then { _newbuildpos = (getPos _house); };
-            };
-            _soldiername = "";
-            if ((_location select 1) == "military") then {
-                _soldiername = dep_mil_units call BIS_fnc_selectRandom;
-            } else {
-                _soldiername = dep_guer_units call BIS_fnc_selectRandom;
-            };
-            
-            _soldier = [_depgroup, _soldiername, _newbuildpos] call dep_fnc_createunit;
-            _soldier setDir (random 360); 
-        };
-        if ((random 1) <= 0.3 && _enemyamount > 1) then {
-            // Make units patrol
-            for "_y" from 0 to 8 do {
-                _newpos = [(getPos _house), 10, (45 * _y)] call BIS_fnc_relPos;
-                _wp = _depgroup addWaypoint [_newpos, _y];
-                _wp setWaypointBehaviour "SAFE";
-                _wp setWaypointSpeed "LIMITED";
-                _wp setWaypointFormation "COLUMN";
-                _wp setWaypointTimeOut [0,5,10];
-                if (_y < 8) then {
-                    _wp setWaypointType "MOVE";
-                } else {
-                    _wp setWaypointType "CYCLE";
-                };
-            };
-        } else {
-            doStop (units _depgroup);
-        };
-        [_depgroup] spawn dep_fnc_enemyspawnprotect;
-        sleep 0.02;
+    _enemyamount = 1;
+    while {_enemyamount < 2} do {
+        _enemyamount = round random dep_max_ai_loc;
     };
+    _spawnpositions = [];
+    {
+        _temp = _x call dep_fnc_buildingpositions;
+        _spawnpositions = _spawnpositions + _temp;
+    } forEach _validhouses;
+    _spawnpositions = _spawnpositions call dep_fnc_shuffle;
+    
+    _depgroup = createGroup dep_side;
+    _groups = _groups + [_depgroup];
+    
+    for "_e" from 1 to _enemyamount do {
+        _spawnpos = [];
+        if ((count _spawnpositions) > 0) then {
+            _spawnpos = _spawnpositions call BIS_fnc_selectRandom;
+            _spawnpositions = _spawnpositions - [_spawnpos];
+        } else {
+            _spawnpos = _pos findEmptyPosition [0,_size];
+            if ((count _spawnpos) == 0) then { _spawnpos = _pos; };
+        };
+        _soldiername = "";
+        if ((_location select 1) == "military") then {
+            _soldiername = dep_mil_units call BIS_fnc_selectRandom;
+        } else {
+            _soldiername = dep_guer_units call BIS_fnc_selectRandom;
+        };
+        
+        _soldier = [_depgroup, _soldiername, _spawnpos] call dep_fnc_createunit;
+        _totalenemies = _totalenemies + 1;
+        _soldier setDir (random 360); 
+    };
+    [_depgroup] spawn dep_fnc_enemyspawnprotect;
+    
+    if ((random 1) < 0.3 && _enemyamount > 1) then {
+        // Make units patrol
+        [_depgroup, _size, _pos] spawn dep_fnc_unitpatrol;
+    } else {
+        doStop (units _depgroup);
+    };
+    sleep 0.5;
     
     // Civilians
     if (dep_civilians && (_location select 1) in ["roadpop"]) then
@@ -240,14 +227,17 @@ if (dep_mines) then {
 // Spawn vehicles and patroling squad
 if ((_location select 1) in ["patrol"]) then {
     _soldiername = "";
-    _list = _pos nearRoads dep_veh_pat_rad;
+    //_list = _pos nearRoads dep_veh_pat_rad;
+    _list = [_pos, dep_veh_pat_rad] call dep_fnc_findroads;
     if (count _list > 10) then {
         _numvehicles = round random (dep_veh_chance * 10);
         if (_numvehicles < 1) then { _numvehicles = 1; };
         for "_z" from 1 to _numvehicles do {
             _road = _list call BIS_fnc_selectRandom;
+            _dir = [_road] call dep_fnc_roaddir;
             _vehname = dep_ground_vehicles call BIS_fnc_selectRandom;
             _veh = _vehname createVehicle (getPos _road);
+            _veh setDir _dir;
             dep_total_veh = dep_total_veh + 1;
             _objects = _objects + [_veh];
             [_veh] spawn dep_fnc_vehicledamage;
@@ -300,6 +290,8 @@ if ((_location select 1) in ["patrol"]) then {
             _return = [_pos, _depgroup] call dep_fnc_vehiclepatrol;
         };
         
+        ["%2 vehicles created at location %1", _this, _numvehicles] spawn dep_fnc_log;
+        
         if (dep_civilians) then
         {
             if ((round random 1) <= 1) then
@@ -324,7 +316,7 @@ if ((_location select 1) in ["patrol"]) then {
     
     _depgroup = createGroup dep_side;
     _groups = _groups + [_depgroup];
-    _enemyamount = [6,8,12] call BIS_fnc_selectRandom;
+    _enemyamount = [4,6,8] call BIS_fnc_selectRandom;
     _totalenemies = _totalenemies + _enemyamount;
     _newpos = [_pos, 200, (random 360)] call BIS_fnc_relPos;
     
@@ -447,5 +439,81 @@ _location set [4, _groups];
 _location set [6, _totalenemies];
 _location set [8, _objects];
 _location set [10, _civilians];
+
+// In case respawn in enabled, save units and objects
+_loccacheobjs = [];
+_loccachegrps = [];
+// Store all objects
+{
+    _obj = _x;
+    _hasplayers = false;
+    if (!isNull _obj) then {
+        if (alive _obj) then {
+            _loccacheitem = [];
+            _loccacheitem set [0, getPosATL _obj];             // Position
+            _loccacheitem set [1, direction _obj];            // Direction
+            _loccacheitem set [2, typeOf _obj];               // Kind
+            if (_obj isKindOf "Tank" || _obj isKindOf "Car") then {
+                _selections = _obj getVariable ["selections", []];
+                _gethit = _obj getVariable "gethit";
+                _loccacheitem set [3, [_selections, _gethit]];
+            } else {
+                _loccacheitem set [3, damage _obj];               // Health
+            };
+            
+            _crew = [];
+            {
+                _unit = _x;
+                if (isPlayer _unit) exitWith { _hasplayers = true; }; // Don't clean up objects when players are in it
+                
+                _crewunit = [];
+                if (alive _unit) then {
+                    _crewunit set [0, typeOf _unit];
+                    _crewunit set [1, assignedVehicleRole _unit];
+                };
+                _crew = _crew + [_crewunit];
+            } foreach (crew _obj);
+            _loccacheitem set [4, _crew];                 // Optional crew
+            if (!_hasplayers) then
+            {
+                _loccacheobjs = _loccacheobjs + [_loccacheitem];
+            };
+        };            
+    };
+} foreach (_location select 8);
+// Store all groups
+{
+    _loccachegrp = [];
+    _group = _x;
+    _waypoints = [_group] call dep_fnc_getwaypoints;
+    {
+        if (alive _x && vehicle _x == _x) then {
+            _pos = getPosATL _x;
+            if !(isNil {_x getVariable "dep_position"}) then
+            {
+                _pos = _x getVariable "dep_position";
+            };
+            _restore_init = "";
+            if !(isNil {_x getVariable "dep_restore_init"}) then
+            {
+                _restore_init = _x getVariable "dep_restore_init";
+            };
+            _loccacheitem = [];
+            _loccacheitem set [0, _pos];                    // Position
+            _loccacheitem set [1, direction _x];            // Direction
+            _loccacheitem set [2, typeOf _x];               // Kind
+            _loccacheitem set [3, damage _x];               // Health
+            _loccacheitem set [4, []];                      // Crew
+            _loccacheitem set [5, _waypoints];              // Waypoints
+            _loccacheitem set [6, _restore_init];           // Code to execute on restore
+            _loccachegrp = _loccachegrp + [_loccacheitem];
+        };
+    } foreach (units _group); // foreach unit in group
+    if ((count _loccachegrp) > 0) then { _loccachegrps = _loccachegrps + [_loccachegrp]; };
+} foreach (_location select 4); // foreach group
+
+_location set [13, _loccacheobjs];
+_location set [14, _loccachegrps];
+
 dep_locations set [_this, _location];
 true;

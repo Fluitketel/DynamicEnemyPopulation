@@ -18,7 +18,7 @@
 
 dep_fnc_spawn_air = 
 {
-	private ["_start","_end","_startpos","_endpos","_waypoints","_vehicle","_group"];
+	private ["_start","_end","_startpos","_endpos","_waypoints","_vehicle","_group","_player","_safe"];
 	_waypoints = _this select 0;
 	
 	_start = floor random (count _waypoints);
@@ -37,11 +37,43 @@ dep_fnc_spawn_air =
 	_vehicle = _return select 0;
 	_group = _return select 2;
     
+    //_return = [_vehicle, _group] call BIS_fnc_spawnCrew;
+    _freeCargoPositions = _vehicle emptyPositions "cargo";
+    if (_freeCargoPositions >= 1) then {
+        _freeCargoPositions = ceil random _freeCargoPositions;
+        for "_y" from 1 to _freeCargoPositions do {
+            _soldiername = dep_mil_units call BIS_fnc_selectRandom;
+            _soldier = [_group, _soldiername, (getPosATL _vehicle)] call dep_fnc_createunit;
+            _soldier assignAsCargo _vehicle;
+            _soldier moveInCargo _vehicle;
+        };
+    };
+    
+    dep_countunits = true;
+    
     if (_vehicle isKindOf "Plane") then
     {
         _vehicle flyInHeight 100;
     } else {
         _vehicle flyInHeight 50;
+    };
+    
+    _player = dep_players call BIS_fnc_selectRandom;
+    if !(isNil "_player") then {
+        _player = getPos _player;
+        _safe = [_player] call dep_fnc_outsidesafezone;
+        if !(_safe) then {
+            _player = [_player, dep_safe_rad, random 360] call BIS_fnc_relPos;
+        };
+        _wp = _group addWaypoint [_player, 1000];
+        _wp setWaypointBehaviour "SAFE";
+        if ((random 1) < 0.5) then {
+            _wp setWaypointSpeed "NORMAL";
+        } else {
+            _wp setWaypointSpeed "LIMITED";
+        };
+        _wp setWaypointFormation "COLUMN";
+        _wp setWaypointType "MOVE";
     };
 	
 	_wp = _group addWaypoint [_endpos, 0];
@@ -83,7 +115,8 @@ for "_c" from 0 to 15 do
     _waypoints = _waypoints + [_pos];
 };
 
-_interval = round ((4096 / (dep_map_center select 0)) * 600);
+//_interval = round ((4096 / (dep_map_center select 0)) * 600);
+_interval = 600;
 ["Air patrol interval is %1 seconds.", _interval] spawn dep_fnc_log;
 
 waitUntil {dep_num_players > 0};
@@ -109,7 +142,7 @@ while {true} do
     {
         _vehicle = [_waypoints] call dep_fnc_spawn_air;
         _vehicles = _vehicles + [_vehicle];
-        sleep (random 60);
+        sleep _interval;
     };
-    sleep _interval;
+    sleep (random _interval);
 };

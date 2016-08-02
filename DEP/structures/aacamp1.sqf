@@ -52,6 +52,7 @@ _newpos = [_housepos, 4, _dir + 200] call BIS_fnc_relPos;
 _prop = (_barrels call BIS_fnc_selectRandom) createVehicle _newpos;
 _prop setDir _dir;
 
+_newpos = _pos findEmptyPosition[0, 20, dep_static_aa];
 _gun1 = dep_static_aa createVehicle _newpos;
 waitUntil {alive _gun1};
 _gun1 setDir _dir;

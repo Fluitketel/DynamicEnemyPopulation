@@ -15,18 +15,41 @@
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
 // This file tells a group to patrol an area.
-private ["_pos","_group","_radius","_wp", "_formation"];
+private ["_pos","_group","_radius","_wp", "_formation", "_water", "_houses"];
 _group  = _this select 0;
-_radius  = _this select 1;
+_radius = _this select 1;
 _pos    = getPos (leader _group);
+if ((count _this) > 2) then {
+    _pos = _this select 2;
+};
 
 _formation = "COLUMN";
 if (random 1 > 0.5) then {
     _formation = "STAG COLUMN";
 };
 
+_houses = [_pos, _radius] call dep_fnc_enterablehouses;
+
 for "_y" from 0 to 8 do {
-    _newpos = [_pos, _radius, (random 360)] call BIS_fnc_relPos;
+    _newpos = [];
+    if ((count _houses) > 0) then {
+        if (random 1 < 0.4) then {
+            _newpos = _houses call BIS_fnc_selectRandom;
+            _houses = _houses - [_newpos];
+            _newpos = _newpos call dep_fnc_buildingpositions;
+            _newpos = _newpos call BIS_fnc_selectRandom;
+        };
+    };
+    if ((count _newpos) == 0) then {
+        _water = true;
+        while {_water} do {
+            _newpos = [_pos, (_radius * 0.3) + (random (_radius * 0.7)), (random 360)] call BIS_fnc_relPos;
+            _water = surfaceIsWater _newpos;
+        };
+    };
+    /*_m = createMarker[format["r%1", _newpos], _newpos];
+    _m setMarkerType "mil_dot";
+    _m setMarkerText (str _y);*/
     _wp = _group addWaypoint [_newpos, _y];
     _wp setWaypointBehaviour "SAFE";
     _wp setWaypointSpeed "LIMITED";

@@ -16,6 +16,7 @@
 */
 // This file creates all the server variables
 
+dep_version                 = "0.6.0"; publicVariable "dep_version";
 dep_worldname   			= toLower(worldName);
 dep_total_ai    			= 0;
 dep_total_civ   			= 0;
@@ -29,10 +30,129 @@ dep_allgroups   			= [];
 dep_civgroups 				= [];
 dep_exceeded_ai_limit       = false;
 dep_exceeded_group_limit	= false;
+dep_mrk_location_clear      = "mil_flag";
+dep_mrk_location_hostile    = "mil_objective";
+
+// World specific settings
+switch (dep_worldname) do {
+    case "altis": {
+        if (isNil "dep_map_center")         then { dep_map_center       = [15360, 15360]; };
+        if (isNil "dep_housepop")           then { dep_housepop         = 80; };
+        if (isNil "dep_roadblocks")         then { dep_roadblocks       = 30; };
+        if (isNil "dep_aa_camps")           then { dep_aa_camps         = 20; };
+        if (isNil "dep_patrols")            then { dep_patrols          = 30; };
+        if (isNil "dep_bunkers")            then { dep_bunkers          = 30; };
+        if (isNil "dep_military")           then { dep_military         = 8; };
+		if (isNil "dep_ambushes")           then { dep_ambushes         = 10; };
+        if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+    };
+    case "stratis": {
+        if (isNil "dep_map_center")         then { dep_map_center       = [4096, 4096]; };
+        if (isNil "dep_housepop")           then { dep_housepop         = 10; };
+        if (isNil "dep_roadblocks")         then { dep_roadblocks       = 5; };
+        if (isNil "dep_aa_camps")           then { dep_aa_camps         = 3; };
+        if (isNil "dep_patrols")            then { dep_patrols          = 5; };
+        if (isNil "dep_bunkers")            then { dep_bunkers          = 5; };
+        if (isNil "dep_military")           then { dep_military         = 3; };
+		if (isNil "dep_ambushes")           then { dep_ambushes         = 3; };
+        if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+    };
+    case "tanoa": {
+        if (isNil "dep_map_center")         then { dep_map_center       = [7680, 7680]; };
+        if (isNil "dep_housepop")           then { dep_housepop         = 50; };
+        if (isNil "dep_roadblocks")         then { dep_roadblocks       = 15; };
+        if (isNil "dep_aa_camps")           then { dep_aa_camps         = 3; };
+        if (isNil "dep_patrols")            then { dep_patrols          = 14; };
+        if (isNil "dep_bunkers")            then { dep_bunkers          = 5; };
+        if (isNil "dep_military")           then { dep_military         = 0; };
+		if (isNil "dep_ambushes")           then { dep_ambushes         = 20; };
+		if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 40; };
+        
+        if (isNil "dep_side")               then { dep_side             = independent; };           // Enemy side (east, west, independent)
+        if (isNil "dep_air_patrols")    	then { dep_air_patrols 		= 2; };           	        // Number of patroling air vehicles
+    };
+    case "takistan": {
+        if (isNil "dep_map_center")         then { dep_map_center       = [6400, 6400]; };
+        if (isNil "dep_housepop")           then { dep_housepop         = 60; };
+        if (isNil "dep_roadblocks")         then { dep_roadblocks       = 8; };
+        if (isNil "dep_aa_camps")           then { dep_aa_camps         = 5; };
+        if (isNil "dep_patrols")            then { dep_patrols          = 14; };
+        if (isNil "dep_bunkers")            then { dep_bunkers          = 15; };
+        if (isNil "dep_military")           then { dep_military         = 4; };
+		if (isNil "dep_ambushes")           then { dep_ambushes         = 2; };
+        if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+    };
+    case "chernarus": {
+        if (isNil "dep_map_center")         then { dep_map_center       = [7680, 7680]; };
+        if (isNil "dep_housepop")           then { dep_housepop         = 70; };
+        if (isNil "dep_roadblocks")         then { dep_roadblocks       = 10; };
+        if (isNil "dep_aa_camps")           then { dep_aa_camps         = 8; };
+        if (isNil "dep_patrols")            then { dep_patrols          = 20; };
+        if (isNil "dep_bunkers")            then { dep_bunkers          = 20; };
+        if (isNil "dep_military")           then { dep_military         = 2; };
+		if (isNil "dep_ambushes")           then { dep_ambushes         = 5; };
+        if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+    };
+    case "woodland_acr": {
+        if (isNil "dep_map_center")         then { dep_map_center       = [3840, 3840]; };
+        if (isNil "dep_housepop")           then { dep_housepop         = 20; };
+        if (isNil "dep_roadblocks")         then { dep_roadblocks       = 4; };
+        if (isNil "dep_aa_camps")           then { dep_aa_camps         = 4; };
+        if (isNil "dep_patrols")            then { dep_patrols          = 5; };
+        if (isNil "dep_bunkers")            then { dep_bunkers          = 10; };
+        if (isNil "dep_military")           then { dep_military         = 3; };
+		if (isNil "dep_ambushes")           then { dep_ambushes         = 2; };
+        if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+    };
+	case "kunduz": {
+        if (isNil "dep_map_center")         then { dep_map_center       = [2560, 2560]; };
+        if (isNil "dep_housepop")           then { dep_housepop         = 12; };
+        if (isNil "dep_roadblocks")         then { dep_roadblocks       = 4; };
+        if (isNil "dep_aa_camps")           then { dep_aa_camps         = 2; };
+        if (isNil "dep_patrols")            then { dep_patrols          = 3; };
+        if (isNil "dep_bunkers")            then { dep_bunkers          = 10; };
+        if (isNil "dep_military")           then { dep_military         = 0; };
+        if (isNil "dep_ambushes")           then { dep_ambushes         = 3; };
+        if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+    };
+	case "zargabad": {
+        if (isNil "dep_map_center")         then { dep_map_center       = [4096, 4096]; };
+        if (isNil "dep_housepop")           then { dep_housepop         = 8; };
+        if (isNil "dep_roadblocks")         then { dep_roadblocks       = 4; };
+        if (isNil "dep_aa_camps")           then { dep_aa_camps         = 4; };
+        if (isNil "dep_patrols")            then { dep_patrols          = 3; };
+        if (isNil "dep_bunkers")            then { dep_bunkers          = 8; };
+        if (isNil "dep_military")           then { dep_military         = 3; };
+		if (isNil "dep_ambushes")           then { dep_ambushes         = 2; };
+        if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+    };
+    default {
+        diag_log format ["DEP: Unknown map %1. Attempting to set default values...", worldName];
+        
+        // Attempt to get map center from config file
+        if (isNil "dep_map_center") then { dep_map_center  = getArray(configFile >> "CfgWorlds" >> worldName >> "centerPosition"); };
+        if (typeName dep_map_center != "ARRAY") exitWith 
+        { 
+            diag_log "DEP INIT FAILED: Could not detect map center.";
+            dep_ready = false;
+            publicVariable "dep_ready";
+        };
+        
+        if (isNil "dep_housepop")           then { dep_housepop         = round (0.0052 * (dep_map_center select 0)); };
+        if (isNil "dep_roadblocks")         then { dep_roadblocks       = round (0.0011 * (dep_map_center select 0)); };
+        if (isNil "dep_aa_camps")           then { dep_aa_camps         = round (0.0011 * (dep_map_center select 0)); };
+        if (isNil "dep_patrols")            then { dep_patrols          = round (0.0013 * (dep_map_center select 0)); };
+        if (isNil "dep_bunkers")            then { dep_bunkers          = round (0.0026 * (dep_map_center select 0)); };
+        if (isNil "dep_military")           then { dep_military         = round (0.0008 * (dep_map_center select 0)); };
+        if (isNil "dep_ambushes")           then { dep_ambushes         = round (0.0004 * (dep_map_center select 0)); };
+        if (isNil "dep_forest_patrols")     then { dep_forest_patrols  = 0; };
+    };
+};
 
 if (isNil "dep_side")               then { dep_side             = east; };          // Enemy side (east, west, independent)
 if (isNil "dep_own_side")           then { dep_own_side         = west; };          // Friendly side (east, west, independent)
 if (isNil "dep_despawn")            then { dep_despawn          = 5; };             // Despawn location after x minutes inactivity
+if (isNil "dep_respawn_timeout")    then { dep_respawn_timeout  = 0; };             // Respawn location after x minutes (0 for no respawn)
 if (isNil "dep_debug")              then { dep_debug            = false; };         // Enable debug
 if (isNil "dep_logging")     		then { dep_logging   		= true; };          // Write debug messages to log file
 if (isNil "dep_chat_logging") 		then { dep_chat_logging 	= false; };         // Write debug messages in chat
@@ -42,11 +162,11 @@ if (isNil "dep_aim_player")         then { dep_aim_player       = 0; };         
 if (isNil "dep_max_ai_tot")         then { dep_max_ai_tot       = 200; };           // Maximum AI in total
 if (isNil "dep_act_dist")           then { dep_act_dist         = 800; };           // Location activation distance
 if (isNil "dep_act_height")         then { dep_act_height       = 80; };            // Player must be below this height to activate location
-if (isNil "dep_act_speed")          then { dep_act_speed        = 160; };           // Player must be below this speed to activate location
+if (isNil "dep_act_speed")          then { dep_act_speed        = 200; };           // Player must be below this speed to activate location
 if (isNil "dep_safe_rad")           then { dep_safe_rad         = 800; };           // Safe zone radius
-if (isNil "dep_max_veh")            then { dep_max_veh          = 10; };            // Max number of vehicles
+if (isNil "dep_max_veh")            then { dep_max_veh          = 20; };            // Max number of vehicles
 if (isNil "dep_ied_chance")         then { dep_ied_chance       = 0.7; };           // Chance of IEDs
-if (isNil "dep_veh_chance")         then { dep_veh_chance       = 0.3; };           // Chance of vehicles
+if (isNil "dep_veh_chance")         then { dep_veh_chance       = 0.5; };           // Chance of vehicles
 if (isNil "dep_unit_init")          then { dep_unit_init        = ""; };            // Code executed on unit creation
 if (isNil "dep_cr_ied")             then { dep_cr_ied           = false; };         // Restrict disarming IED to explosives class
 if (isNil "dep_useheadless")        then { dep_useheadless      = false; };         // Load DEP on a headless client
@@ -61,6 +181,7 @@ if (isNil "dep_civ_fail_script")    then { dep_civ_fail_script 	= ""; };        
 if (isNil "dep_veh_pat_rad")    	then { dep_veh_pat_rad 		= 800; };           // Radius of vehicle patrol zones
 if (isNil "dep_map_margin")    		then { dep_map_margin 		= 400; };           // Distance in meters from the edges of the map where enemies can spawn
 if (isNil "dep_air_patrols")    	then { dep_air_patrols 		= 1; };           	// Number of patroling air vehicles
+if (isNil "dep_town_occupation")    then { dep_town_occupation  = 0.7; };           // Percentage of towns that are occupied
 if (isNil "dep_safe_zone") then 
 { 
     if (getMarkerColor "respawn_west" != "" && dep_own_side == west) then { dep_safe_zone = getMarkerPos "respawn_west"; };
@@ -68,6 +189,9 @@ if (isNil "dep_safe_zone") then
     if (getMarkerColor "respawn_guerrila" != "" && dep_own_side == independent) then { dep_safe_zone = getMarkerPos "respawn_guerrila"; };
     if (isNil "dep_safe_zone") then { dep_safe_zone = []; }; 
 };
+
+if (dep_town_occupation > 1) then { dep_town_occupation = dep_town_occupation / 100; }; // 75 becomes 0.75
+if (dep_max_ai_loc < 2) then { dep_max_ai_loc = 2; };
 
 dep_base_ai_loc = dep_max_ai_loc;
 if (dep_aim_player > 1 || dep_aim_player < 0) then { dep_aim_player = 0; };
@@ -109,7 +233,10 @@ switch (dep_side) do
         if (isNil "dep_u_sniper")       	then { dep_u_sniper     	= "O_Sniper_F"; };
         if (isNil "dep_u_veh_cmnd")     	then { dep_u_veh_cmnd   	= "O_officer_F"; };
         if (isNil "dep_u_veh_crew")     	then { dep_u_veh_crew   	= "O_crew_F"; };
-		
+        
+        if (isNil "dep_ground_vehicles") 	then { dep_ground_vehicles 	= ["O_MRAP_02_hmg_F","O_MRAP_02_gmg_F","O_APC_Tracked_02_cannon_F","O_G_Van_01_transport_F","O_APC_Wheeled_02_rcws_F","O_G_Offroad_01_armed_F"]; };
+        if (isNil "dep_air_vehicles") 		then { dep_air_vehicles 	= ["O_Heli_Attack_02_F","O_Heli_Light_02_F","O_Plane_CAS_02_F"]; };
+
 		if (isNil "dep_static_aa") 			then { dep_static_aa		= "O_static_AA_F"; };
 		if (isNil "dep_static_at") 			then { dep_static_at		= "O_static_AT_F"; };
 		if (isNil "dep_static_hmg") 		then { dep_static_hmg		= "O_HMG_01_high_F"; };
@@ -121,9 +248,6 @@ switch (dep_side) do
 		if (isNil "dep_box_launchers") 		then { dep_box_launchers	= "Box_East_WpsLaunch_F"; };
 		if (isNil "dep_box_ammo") 			then { dep_box_ammo			= "Box_East_Ammo_F"; };
 		if (isNil "dep_box_ord") 			then { dep_box_ord			= "Box_East_AmmoOrd_F"; };
-        
-        if (isNil "dep_ground_vehicles") 	then { dep_ground_vehicles 	= ["O_MRAP_02_hmg_F","O_MRAP_02_gmg_F","O_APC_Tracked_02_cannon_F","O_G_Van_01_transport_F","O_APC_Wheeled_02_rcws_F","O_G_Offroad_01_armed_F"]; };
-        if (isNil "dep_air_vehicles") 		then { dep_air_vehicles 	= ["O_Heli_Attack_02_F","O_Heli_Light_02_F","O_Plane_CAS_02_F"]; };
     };
     case west: {
         if (isNil "dep_u_g_soldier")    	then { dep_u_g_soldier  	= "B_G_Soldier_F"; };
@@ -163,6 +287,33 @@ switch (dep_side) do
 		if (isNil "dep_air_vehicles") 		then { dep_air_vehicles 	= ["B_Heli_Attack_01_F","B_Heli_Light_01_armed_F","B_Plane_CAS_01_F"]; };
     };
     default {
+        if (dep_worldname == "tanoa") then {
+            if (isNil "dep_u_g_soldier")    	then { dep_u_g_soldier  	= "I_C_Soldier_Bandit_7_F"; };
+            if (isNil "dep_u_g_gl")         	then { dep_u_g_gl       	= "I_C_Soldier_Bandit_6_F"; };
+            if (isNil "dep_u_g_ar")         	then { dep_u_g_ar       	= "I_C_Soldier_Bandit_3_F"; };
+            if (isNil "dep_u_g_at")         	then { dep_u_g_at       	= "I_C_Soldier_Bandit_2_F"; };
+            if (isNil "dep_u_g_medic")      	then { dep_u_g_medic    	= "I_C_Soldier_Bandit_1_F"; };
+            if (isNil "dep_u_g_sl")         	then { dep_u_g_sl       	= "I_C_Soldier_Bandit_4_F"; };
+            if (isNil "dep_u_g_marksman")   	then { dep_u_g_marksman 	= "I_C_Soldier_Bandit_5_F"; };
+
+            if (isNil "dep_u_soldier")      	then { dep_u_soldier    	= "I_C_Soldier_Para_1_F"; };
+            if (isNil "dep_u_gl")           	then { dep_u_gl         	= "I_C_Soldier_Para_6_F"; };
+            if (isNil "dep_u_ar")           	then { dep_u_ar         	= "I_C_Soldier_Para_4_F"; };
+            if (isNil "dep_u_at")           	then { dep_u_at         	= "I_C_Soldier_Para_5_F"; };
+            if (isNil "dep_u_medic")        	then { dep_u_medic      	= "I_C_Soldier_Para_3_F"; };
+            if (isNil "dep_u_aa")           	then { dep_u_aa         	= "I_C_Soldier_Para_5_F"; };
+            if (isNil "dep_u_aaa")          	then { dep_u_aaa        	= "I_C_Soldier_Para_7_F"; };
+            if (isNil "dep_u_sl")           	then { dep_u_sl         	= "I_C_Soldier_Para_2_F"; };
+            if (isNil "dep_u_marksman")     	then { dep_u_marksman   	= "I_C_Soldier_Para_1_F"; };
+            if (isNil "dep_u_sniper")       	then { dep_u_sniper     	= "I_C_Soldier_Para_1_F"; };
+            if (isNil "dep_u_veh_cmnd")     	then { dep_u_veh_cmnd   	= "I_C_Soldier_Para_8_F"; };
+            if (isNil "dep_u_veh_crew")     	then { dep_u_veh_crew   	= "I_C_Soldier_Para_8_F"; };
+            
+            if (isNil "dep_civ_veh")            then { dep_civ_veh          = ["C_Offroad_02_unarmed_F","C_Offroad_01_F","C_Truck_02_transport_F","C_Truck_02_covered_F","C_SUV_01_F"]; };
+            if (isNil "dep_ground_vehicles") 	then { dep_ground_vehicles 	= ["I_C_Offroad_02_unarmed_F","I_C_Van_01_transport_F","I_G_Van_01_transport_F","I_G_Offroad_01_armed_F","O_T_LSV_02_armed_F","O_T_LSV_02_unarmed_F","O_T_Truck_03_transport_ghex_F","O_T_Truck_03_covered_ghex_F"]; };
+            if (isNil "dep_air_vehicles") 		then { dep_air_vehicles 	= ["I_C_Plane_Civil_01_F","I_Heli_light_03_F","I_C_Heli_Light_01_civil_F","I_Heli_Transport_02_F"]; };
+        };
+        
         if (isNil "dep_u_g_soldier")    	then { dep_u_g_soldier  	= "I_G_Soldier_F"; };
         if (isNil "dep_u_g_gl")         	then { dep_u_g_gl       	= "I_G_Soldier_GL_F"; };
         if (isNil "dep_u_g_ar")         	then { dep_u_g_ar       	= "I_G_Soldier_AR_F"; };
@@ -252,97 +403,4 @@ if ((typeName dep_headlessclient) == "OBJECT" && dep_useheadless && dep_isheadle
 
 [] execVM dep_directory+"functions\common.sqf";
 
-// World specific settings
-switch (dep_worldname) do {
-    case "altis": {
-        if (isNil "dep_map_center") then { dep_map_center  = [15360, 15360]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 140; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 30; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 20; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 30; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 30; };
-        if (isNil "dep_military")   then { dep_military    = 8; };
-		if (isNil "dep_ambushes")   then { dep_ambushes    = 10; };
-    };
-    case "stratis": {
-        if (isNil "dep_map_center") then { dep_map_center  = [4096, 4096]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 15; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 5; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 3; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 5; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 5; };
-        if (isNil "dep_military")   then { dep_military    = 3; };
-		if (isNil "dep_ambushes")   then { dep_ambushes    = 3; };
-    };
-    case "takistan": {
-        if (isNil "dep_map_center") then { dep_map_center  = [6400, 6400]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 60; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 8; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 5; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 14; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 15; };
-        if (isNil "dep_military")   then { dep_military    = 4; };
-		if (isNil "dep_ambushes")   then { dep_ambushes    = 2; };
-    };
-    case "chernarus": {
-        if (isNil "dep_map_center") then { dep_map_center  = [7680, 7680]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 70; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 10; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 8; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 20; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 20; };
-        if (isNil "dep_military")   then { dep_military    = 2; };
-		if (isNil "dep_ambushes")   then { dep_ambushes    = 5; };
-    };
-    case "woodland_acr": {
-        if (isNil "dep_map_center") then { dep_map_center  = [3840, 3840]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 20; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 4; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 4; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 5; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 10; };
-        if (isNil "dep_military")   then { dep_military    = 3; };
-		if (isNil "dep_ambushes")   then { dep_ambushes    = 2; };
-    };
-	case "kunduz": {
-        if (isNil "dep_map_center") then { dep_map_center  = [2560, 2560]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 12; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 4; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 2; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 3; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 10; };
-        if (isNil "dep_military")   then { dep_military    = 0; };
-        if (isNil "dep_ambushes")   then { dep_ambushes    = 3; };
-    };
-	case "zargabad": {
-        if (isNil "dep_map_center") then { dep_map_center  = [4096, 4096]; };
-        if (isNil "dep_housepop")   then { dep_housepop    = 8; };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = 4; };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = 4; };
-        if (isNil "dep_patrols")    then { dep_patrols     = 3; };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = 8; };
-        if (isNil "dep_military")   then { dep_military    = 3; };
-		if (isNil "dep_ambushes")   then { dep_ambushes    = 2; };
-    };
-    default {
-        diag_log format ["DEP: Unknown map %1. Attempting to set default values...", worldName];
-        
-        // Attempt to get map center from config file
-        if (isNil "dep_map_center") then { dep_map_center  = getArray(configFile >> "CfgWorlds" >> worldName >> "centerPosition"); };
-        if (typeName dep_map_center != "ARRAY") exitWith 
-        { 
-            diag_log "DEP INIT FAILED: Could not detect map center.";
-            dep_ready = false;
-            publicVariable "dep_ready";
-        };
-        
-        if (isNil "dep_housepop")   then { dep_housepop    = round (0.0052 * (dep_map_center select 0)); };
-        if (isNil "dep_roadblocks") then { dep_roadblocks  = round (0.0011 * (dep_map_center select 0)); };
-        if (isNil "dep_aa_camps")   then { dep_aa_camps    = round (0.0011 * (dep_map_center select 0)); };
-        if (isNil "dep_patrols")    then { dep_patrols     = round (0.0013 * (dep_map_center select 0)); };
-        if (isNil "dep_bunkers")    then { dep_bunkers     = round (0.0026 * (dep_map_center select 0)); };
-        if (isNil "dep_military")   then { dep_military    = round (0.0008 * (dep_map_center select 0)); };
-        if (isNil "dep_ambushes")   then { dep_ambushes    = round (0.0004 * (dep_map_center select 0)); };
-    };
-};
 dep_map_radius  = ceil (sqrt (((dep_map_center select 0) ^ 2) + ((dep_map_center select 1) ^ 2)));

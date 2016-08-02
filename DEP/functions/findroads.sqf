@@ -14,21 +14,15 @@
     You should have received a copy of the GNU General Public License
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
-// This file finds the nearest road in a given radius.
+// This file finds near real roads, not footpaths.
+params ['_pos','_radius'];
+private ["_bridge","_list"];
 
-_pos = _this select 0;
-_radius = _this select 1;
-
-//_list = _pos nearRoads _radius;
-_list = [_pos, _radius] call dep_fnc_findroads;
-_smallestdistance = _radius;
-_road = objNull;
+_list = [];
 {
-    _currentdistance = _pos distance _x;
-    if (_currentdistance < _smallestdistance) then 
-    {
-        _smallestdistance = _currentdistance;
-        _road = _x;
+    _bridge = ["bridge", (getModelInfo _x) select 0] call BIS_fnc_inString;
+    if ((isOnRoad getPos _x) && !_bridge) then {
+        _list pushBack _x;
     };
-} forEach _list;
-_road;
+} forEach (_pos nearRoads _radius);
+_list;

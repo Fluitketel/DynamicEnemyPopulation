@@ -25,6 +25,7 @@ _allbuildings = [];
 _buildings = [];
 
 switch (dep_worldname) do {
+    case "tanoa";
     case "stratis";
     case "altis": {
         _buildings = nearestObjects [_pos, ["Cargo_HQ_base_F","Cargo_House_base_F","Cargo_Tower_base_F"], _radius];

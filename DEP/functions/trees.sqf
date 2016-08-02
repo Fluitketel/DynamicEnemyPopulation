@@ -1,4 +1,4 @@
-/*  Copyright 2014 Fluit
+/*  Copyright 2015 Fluit
     
     This file is part of Dynamic Enemy Population.
 
@@ -14,21 +14,22 @@
     You should have received a copy of the GNU General Public License
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
-// This file finds the nearest road in a given radius.
+// This file finds trees in a given area.
 
+private ["_objects", "_validobjects", "_pos", "_size", "_keywords"];
 _pos = _this select 0;
-_radius = _this select 1;
+_size = _this select 1;
 
-//_list = _pos nearRoads _radius;
-_list = [_pos, _radius] call dep_fnc_findroads;
-_smallestdistance = _radius;
-_road = objNull;
+_pos set [2, 0];
+_keywords = ["t_"];
+_objects = nearestObjects [_pos, [], _size];
+_validobjects = [];
 {
-    _currentdistance = _pos distance _x;
-    if (_currentdistance < _smallestdistance) then 
-    {
-        _smallestdistance = _currentdistance;
-        _road = _x;
-    };
-} forEach _list;
-_road;
+	_ok = false;
+	_object = _x;   
+	{
+		_result = [_x, (str _object)] call BIS_fnc_inString;
+		if (_result) exitWith { _validobjects = _validobjects + [_object];  };
+	} forEach _keywords;
+} forEach _objects;		
+_validobjects;

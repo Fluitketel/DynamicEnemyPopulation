@@ -25,6 +25,7 @@ Installation
   [] execVM "DEP\init.sqf";
 ```
  - Modify the DEP/settings.sqf file to set custom units and vehicles, custom enemy amounts and more!
+ - More information about possible [settings](https://fluitarma.wordpress.com/dep-settings/).
  
 Credits
 ==============================

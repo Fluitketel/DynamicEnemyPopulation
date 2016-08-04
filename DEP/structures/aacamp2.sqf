@@ -15,7 +15,7 @@
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
 // This file spawns anti air camp 2.
-private ["_pos", "_dir", "_newpos", "_campgroup", "_prop", "_soldier", "_ammo","_totalenemies","_groups","_objects"];
+private ["_pos", "_dir", "_newpos", "_campgroup", "_soldier", "_ammo","_totalenemies","_groups","_objects"];
 _pos = _this select 0; // Camp position
 _dir = _this select 1; // Camp direction
 
@@ -33,73 +33,62 @@ _campgroup = createGroup dep_side;
 _campgroup setFormDir _dir + 180;
 _groups = _groups + [_campgroup];
 
-_ammo = dep_box_launchers createVehicle _pos;
-_ammo setDir _dir;
+_objs = [
+	["Land_BagFence_01_round_green_F",[-0.0239258,-2.19629,-0.00130129],179.93,1,0,[],"","",true,false], 
+	["Land_BagFence_01_round_green_F",[0.0180664,2.56201,-0.00130129],0,1,0,[],"","",true,false], 
+	["B_static_AA_F",[0.13623,-3.6123,-0.0702686],179.934,1,0,[],"aa2","",true,false], 
+	["B_static_AA_F",[-0.138672,3.97656,-0.0702686],0.00401756,1,0,[],"aa1","",true,false], 
+	["Land_BagFence_01_round_green_F",[-1.66064,-3.89014,-0.00130129],89.9072,1,0,[],"","",true,false], 
+	["Land_BagFence_01_round_green_F",[1.73682,-3.93115,-0.00130129],269.908,1,0,[],"","",true,false], 
+	["Land_BagFence_01_round_green_F",[1.65771,4.24512,-0.00130129],270,1,0,[],"","",true,false], 
+	["Land_BagFence_01_round_green_F",[-1.74512,4.2915,-0.00130129],90,1,0,[],"","",true,false], 
+	["Land_BagFence_01_round_green_F",[0.0522461,-5.55908,-0.00130129],359.906,1,0,[],"","",true,false], 
+	["Land_BagFence_01_round_green_F",[-0.0498047,5.92432,-0.00130129],180,1,0,[],"","",true,false]
+];
+_return = [_pos, _dir, _objs] call BIS_fnc_ObjectsMapper;
 
-_newpos = [_ammo, 6, _dir + 90] call BIS_fnc_relPos;
-_newpos = [_newpos, 4, _dir] call BIS_fnc_relPos;
-_prop = "Land_HBarrier_5_F" createVehicle _newpos;
-_prop setDir _dir + 90;
-
-_newpos = [_ammo, 6, _dir + 90] call BIS_fnc_relPos;
-_newpos = [_newpos, 4, _dir + 180] call BIS_fnc_relPos;
-_prop = "Land_HBarrier_5_F" createVehicle _newpos;
-_prop setDir _dir + 90;
-
-_newpos = [_ammo, 5, _dir - 90] call BIS_fnc_relPos;
-_newpos = [_newpos, 4, _dir] call BIS_fnc_relPos;
-_prop = "Land_HBarrier_5_F" createVehicle _newpos;
-_prop setDir _dir - 90;
-
-_newpos = [_ammo, 5, _dir - 90] call BIS_fnc_relPos;
-_newpos = [_newpos, 4, _dir + 180] call BIS_fnc_relPos;
-_prop = "Land_HBarrier_5_F" createVehicle _newpos;
-_prop setDir _dir - 90;
-
-_newpos = [_ammo, 10, _dir] call BIS_fnc_relPos;
-_tower = (["Land_HBarrier_5_F","Land_Cargo_House_V3_F"] call BIS_fnc_selectRandom) createVehicle _newpos;
-_tower setDir _dir;
-
-_newpos = [_ammo, 5, _dir + 180] call BIS_fnc_relPos;
-_gun1 = dep_static_aa createVehicle _newpos;
-waitUntil {alive _gun1};
-_gun1 setDir _dir + 180;
+_newpos = getPos aa1;
+_newdir = getDir aa1;
+deleteVehicle aa1;
+_gun1 = createVehicle [dep_static_aa, _newpos, [], 0, "CAN_COLLIDE"];
 _objects = _objects + [_gun1];
-_newpos = [_newpos, 1, _dir] call BIS_fnc_relPos;
-_gunner1 = [_campgroup, dep_u_soldier, _newpos] call dep_fnc_createunit;
-waitUntil {alive _gunner1};
+_gun1 setDir _newdir;
+_gunner1 = [_campgroup, dep_u_soldier, _pos] call dep_fnc_createunit;
+_totalenemies = _totalenemies + 1;
 _gunner1 assignAsGunner _gun1;
 _gunner1 moveInGunner _gun1;
+_gunner1 setDir _newdir;
+
+_newpos = getPos aa2;
+_newdir = getDir aa2;
+deleteVehicle aa2;
+_gun1 = createVehicle [dep_static_aa, _newpos, [], 0, "CAN_COLLIDE"];
+_objects = _objects + [_gun1];
+_gun1 setDir _newdir;
+_gunner1 = [_campgroup, dep_u_soldier, _pos] call dep_fnc_createunit;
 _totalenemies = _totalenemies + 1;
+_gunner1 assignAsGunner _gun1;
+_gunner1 moveInGunner _gun1;
+_gunner1 setDir _newdir;
 
-_newpos = [_ammo, 11, _dir + 180] call BIS_fnc_relPos;
-_prop = "Land_CncBarrier_stripes_F" createVehicle _newpos;
-_prop setDir _dir;
+_newpos = _pos findEmptyPosition[0, 10, dep_box_launchers];
+if ((count _newpos) == 3) then {
+    _ammo = dep_box_launchers createVehicle _newpos;
+    _ammo setDir _dir;
+};
 
-_newpos = [_ammo, 10, _dir + 180] call BIS_fnc_relPos;
-_newpos = [_newpos, 4, _dir - 90] call BIS_fnc_relPos;
-_prop = "Land_CncBarrier_F" createVehicle _newpos;
-_prop setDir _dir + 30;
-
-_newpos = [_ammo, 10, _dir + 180] call BIS_fnc_relPos;
-_newpos = [_newpos, 4, _dir + 90] call BIS_fnc_relPos;
-_prop = "Land_CncBarrier_F" createVehicle _newpos;
-_prop setDir _dir - 30;
-
-_soldier = [_campgroup, dep_u_sl, getPos _tower] call dep_fnc_createunit;
+_newpos = _pos findEmptyPosition[0, 20, dep_u_sl];
+_soldier = [_campgroup, dep_u_sl, _newpos] call dep_fnc_createunit;
 doStop _soldier;
-
 _totalenemies = _totalenemies + 1;
-for "_c" from 1 to (1 + round (random 1)) do
+
+for "_c" from 1 to (ceil random (dep_max_ai_loc - _totalenemies)) do
 { 
-    _newpos = [_pos, round (random 5), random 360] call BIS_fnc_relPos;
-    _soldier = [_campgroup, dep_u_aa, _newpos] call dep_fnc_createunit;
-    doStop _soldier;
-    _totalenemies = _totalenemies + 1;
-    
-    _newpos = [_pos, round (random 5), random 360] call BIS_fnc_relPos;
-    _soldier = [_campgroup, dep_u_aaa, _newpos] call dep_fnc_createunit;
+    _soldiername = [dep_u_aa, dep_u_aaa] call BIS_fnc_selectRandom;
+    _newpos = _pos findEmptyPosition[0, 20, _soldiername];
+    _soldier = [_campgroup, _soldiername, _newpos] call dep_fnc_createunit;
     doStop _soldier;
     _totalenemies = _totalenemies + 1;
 };
+
 [_totalenemies,_groups,_objects];

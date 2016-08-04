@@ -53,7 +53,6 @@ dep_fnc_aacamp2                 = compile preprocessFileLineNumbers (dep_directo
 dep_fnc_forest_patrol1          = compile preprocessFileLineNumbers (dep_directory+"structures\forestpatrol1.sqf");
 dep_fnc_restore                 = compile preprocessFileLineNumbers (dep_directory+"functions\restore.sqf");
 dep_fnc_activate                = compile preprocessFileLineNumbers (dep_directory+"functions\activate.sqf");
-dep_fnc_activate_aacamp         = compile preprocessFileLineNumbers (dep_directory+"functions\activate_aacamp.sqf");
 dep_fnc_deactivate              = compile preprocessFileLineNumbers (dep_directory+"functions\deactivate.sqf");
 dep_fnc_garrison                = compile preprocessFileLineNumbers (dep_directory+"functions\garrison.sqf");
 dep_fnc_enemyspawnprotect       = compile preprocessFileLineNumbers (dep_directory+"functions\enemyspawnprotect.sqf");

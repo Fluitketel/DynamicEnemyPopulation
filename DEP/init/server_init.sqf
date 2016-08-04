@@ -754,12 +754,7 @@ if (dep_precache) then
 {
     for "_g" from 0 to (dep_num_loc - 1) do 
     {
-        _location = dep_locations select _g;
-        if ((_location select 1) == "antiair") then {
-            _handle = _g call dep_fnc_activate_aacamp;
-        } else {
-            _handle = _g call dep_fnc_activate;
-        };
+        _handle = _g call dep_fnc_activate;
         _handle = _g call dep_fnc_deactivate;
     };
 };
@@ -963,11 +958,7 @@ while {true} do
             if (!dep_exceeded_group_limit && !dep_exceeded_ai_limit) then {
                 if (!_active && !_tooclose) then {
                     // Location is not cleared and not active => spawn units
-                    if (_type == "antiair") then {
-                        _handle = _g call dep_fnc_activate_aacamp;
-                    } else {
-                        _handle = _g call dep_fnc_activate;
-                    };
+                    _handle = _g call dep_fnc_activate;
                     dep_countunits = true;
                 };
             };

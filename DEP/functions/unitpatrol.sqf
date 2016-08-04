@@ -15,7 +15,7 @@
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
 // This file tells a group to patrol an area.
-private ["_pos","_group","_radius","_wp", "_formation", "_water", "_houses"];
+private ["_pos","_newpos","_group","_radius","_wp", "_formation", "_water", "_houses"];
 _group  = _this select 0;
 _radius = _this select 1;
 _pos    = getPos (leader _group);
@@ -37,7 +37,9 @@ for "_y" from 0 to 8 do {
             _newpos = _houses call BIS_fnc_selectRandom;
             _houses = _houses - [_newpos];
             _newpos = _newpos call dep_fnc_buildingpositions;
-            _newpos = _newpos call BIS_fnc_selectRandom;
+            if ((count _newpos) > 0) then {
+                _newpos = _newpos call BIS_fnc_selectRandom;
+            };
         };
     };
     if ((count _newpos) == 0) then {

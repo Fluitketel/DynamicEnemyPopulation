@@ -29,6 +29,6 @@ if (_connected == 0) then {
     } else {
         _connectedRoad = _roadsConnectedTo select 0;
     };
-    _roaddir = [_road, _connectedRoad] call BIS_fnc_DirTo;;
+    _roaddir = [_road, _connectedRoad] call BIS_fnc_DirTo;
 };
 _roaddir;

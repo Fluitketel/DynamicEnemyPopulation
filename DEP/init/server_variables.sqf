@@ -16,7 +16,7 @@
 */
 // This file creates all the server variables
 
-dep_version                 = "0.6.0"; publicVariable "dep_version";
+dep_version                 = "0.6.1"; publicVariable "dep_version";
 dep_worldname   			= toLower(worldName);
 dep_total_ai    			= 0;
 dep_total_civ   			= 0;
@@ -70,6 +70,7 @@ switch (dep_worldname) do {
         
         if (isNil "dep_side")               then { dep_side             = independent; };           // Enemy side (east, west, independent)
         if (isNil "dep_air_patrols")    	then { dep_air_patrols 		= 2; };           	        // Number of patroling air vehicles
+        if (isNil "dep_civ_units")          then { dep_civ_units        = ["C_Man_casual_1_F_tanoan","C_Man_casual_2_F_tanoan","C_Man_casual_3_F_tanoan","C_Man_casual_4_F_tanoan","C_Man_casual_5_F_tanoan","C_Man_casual_6_F_tanoan"]; };
     };
     case "takistan": {
         if (isNil "dep_map_center")         then { dep_map_center       = [6400, 6400]; };
@@ -182,6 +183,7 @@ if (isNil "dep_veh_pat_rad")    	then { dep_veh_pat_rad 		= 800; };           //
 if (isNil "dep_map_margin")    		then { dep_map_margin 		= 400; };           // Distance in meters from the edges of the map where enemies can spawn
 if (isNil "dep_air_patrols")    	then { dep_air_patrols 		= 1; };           	// Number of patroling air vehicles
 if (isNil "dep_town_occupation")    then { dep_town_occupation  = 0.7; };           // Percentage of towns that are occupied
+if (isNil "dep_enemy_presence")     then { dep_enemy_presence   = 1; };             // Overall factor for enemy presence (modifies the amount of enemy zones)
 if (isNil "dep_safe_zone") then 
 { 
     if (getMarkerColor "respawn_west" != "" && dep_own_side == west) then { dep_safe_zone = getMarkerPos "respawn_west"; };
@@ -192,6 +194,17 @@ if (isNil "dep_safe_zone") then
 
 if (dep_town_occupation > 1) then { dep_town_occupation = dep_town_occupation / 100; }; // 75 becomes 0.75
 if (dep_max_ai_loc < 2) then { dep_max_ai_loc = 2; };
+
+// Apply enemy presence modifier
+dep_housepop        = round (dep_housepop       * dep_enemy_presence);
+dep_roadblocks      = round (dep_roadblocks     * dep_enemy_presence);
+dep_aa_camps        = round (dep_aa_camps       * dep_enemy_presence);
+dep_patrols         = round (dep_patrols        * dep_enemy_presence);
+dep_bunkers         = round (dep_bunkers        * dep_enemy_presence);
+dep_ambushes        = round (dep_ambushes       * dep_enemy_presence);
+dep_forest_patrols  = round (dep_forest_patrols * dep_enemy_presence);
+dep_town_occupation = dep_town_occupation * dep_enemy_presence;
+if (dep_town_occupation > 1) then { dep_town_occupation = 1; };
 
 dep_base_ai_loc = dep_max_ai_loc;
 if (dep_aim_player > 1 || dep_aim_player < 0) then { dep_aim_player = 0; };
@@ -302,7 +315,7 @@ switch (dep_side) do
             if (isNil "dep_u_at")           	then { dep_u_at         	= "I_C_Soldier_Para_5_F"; };
             if (isNil "dep_u_medic")        	then { dep_u_medic      	= "I_C_Soldier_Para_3_F"; };
             if (isNil "dep_u_aa")           	then { dep_u_aa         	= "I_C_Soldier_Para_5_F"; };
-            if (isNil "dep_u_aaa")          	then { dep_u_aaa        	= "I_C_Soldier_Para_7_F"; };
+            if (isNil "dep_u_aaa")          	then { dep_u_aaa        	= "I_C_Soldier_Para_4_F"; };
             if (isNil "dep_u_sl")           	then { dep_u_sl         	= "I_C_Soldier_Para_2_F"; };
             if (isNil "dep_u_marksman")     	then { dep_u_marksman   	= "I_C_Soldier_Para_1_F"; };
             if (isNil "dep_u_sniper")       	then { dep_u_sniper     	= "I_C_Soldier_Para_1_F"; };
@@ -384,6 +397,7 @@ if (isNil "dep_guer_units") then
 
 if (isNil "dep_civ_units") then { dep_civ_units = ["C_man_1","C_man_1","C_man_polo_1_F","C_man_polo_2_F","C_man_polo_3_F","C_man_polo_4_F","C_man_polo_5_F","C_man_shorts_1_F","C_man_1_1_F","C_man_1_2_F","C_man_1_3_F","C_man_w_worker_F"]; };
 if (isNil "dep_civ_veh") then { dep_civ_veh = ["C_Offroad_01_F","C_Van_01_box_F","C_Van_01_transport_F"]; };
+if (isNil "dep_clutter") then { dep_clutter = ["Land_GarbageHeap_01_F","Land_GarbageBags_F","Land_JunkPile_F","Land_GarbageHeap_02_F","Land_GarbageHeap_03_F","Land_GarbageHeap_04_F"]; };
 
 if (dep_isheadless && !dep_useheadless) exitWith
 {

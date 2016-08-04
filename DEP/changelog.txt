@@ -1,3 +1,9 @@
+Version 0.6.1
+=============
+* Added: enemy presence modifier (set dep_enemy_presence to 0.5 to spawn only half of the zones)
+* Changed: different AA camp
+* Fixed: possible undefined variable
+
 Version 0.6.0
 =============
 * Added: Tanoa map support

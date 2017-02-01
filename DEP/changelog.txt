@@ -2,7 +2,9 @@ Version 0.6.1
 =============
 * Added: enemy presence modifier (set dep_enemy_presence to 0.5 to spawn only half of the zones)
 * Changed: different AA camp
+* Changed: patrolling vehicles are more dynamic
 * Fixed: possible undefined variable
+* Fixed: air patrols now actually attack
 
 Version 0.6.0
 =============

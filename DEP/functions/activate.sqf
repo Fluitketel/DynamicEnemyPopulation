@@ -99,9 +99,11 @@ if ((_location select 1) == "ambush") then {
 // Spawn units 
 if ((_location select 1) in ["roadpop","town","military"]) then {
     _validhouses = [_pos, _size] call dep_fnc_enterablehouses;
-    _enemyamount = 1;
-    while {_enemyamount < 2} do {
-        _enemyamount = round random dep_max_ai_loc;
+    _enemyamount = 2;
+    if ((_location select 1) == "town") then {
+        _enemyamount = dep_max_ai_loc; // Max amount of enemies in towns
+    } else {
+        _enemyamount = (dep_max_ai_loc / 2) + (round random (dep_max_ai_loc / 2));
     };
     _spawnpositions = [];
     {
@@ -232,7 +234,7 @@ if (dep_mines) then {
 
 // Spawn vehicles and patroling squad
 if ((_location select 1) in ["patrol"]) then {
-    _soldiername = "";
+    /*_soldiername = "";
     _list = [_pos, dep_veh_pat_rad] call dep_fnc_findroads;
     if (count _list > 10) then {
         _numvehicles = round random (dep_veh_chance * 10);
@@ -317,7 +319,7 @@ if ((_location select 1) in ["patrol"]) then {
                 _return = [_pos, _civgroup] call dep_fnc_vehiclepatrol;
             };
         };
-    };
+    };*/
     
     _depgroup = createGroup dep_side;
     _groups = _groups + [_depgroup];

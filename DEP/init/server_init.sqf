@@ -771,6 +771,9 @@ publicVariable "dep_ready";
 // Create air patrols
 [] spawn dep_fnc_airpatrols;
 
+// Create vehicle patrols
+[] spawn dep_fnc_vehiclepatrols;
+
 dep_countunits = false;
 while {true} do 
 {            

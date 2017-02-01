@@ -37,7 +37,6 @@ dep_fnc_spawn_air =
 	_vehicle = _return select 0;
 	_group = _return select 2;
     
-    //_return = [_vehicle, _group] call BIS_fnc_spawnCrew;
     _freeCargoPositions = _vehicle emptyPositions "cargo";
     if (_freeCargoPositions >= 1) then {
         _freeCargoPositions = ceil random _freeCargoPositions;
@@ -51,11 +50,11 @@ dep_fnc_spawn_air =
     
     dep_countunits = true;
     
-    if (_vehicle isKindOf "Plane") then
-    {
+    if (_vehicle isKindOf "Plane") then {
         _vehicle flyInHeight 100;
     } else {
         _vehicle flyInHeight 50;
+        _group setCombatMode "RED";
     };
     
     _player = dep_players call BIS_fnc_selectRandom;
@@ -116,7 +115,7 @@ for "_c" from 0 to 15 do
 };
 
 //_interval = round ((4096 / (dep_map_center select 0)) * 600);
-_interval = 600;
+_interval = 900;
 ["Air patrol interval is %1 seconds.", _interval] spawn dep_fnc_log;
 
 waitUntil {dep_num_players > 0};

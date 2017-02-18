@@ -16,19 +16,36 @@
 */
 // This file finds all (enterable) military buildings in a given area.
 
-private ["_pos","_radius","_allbuildings","_buildings","_building","_checkenterable","_ok","_keywords"];
+private ["_pos","_radius","_allbuildings","_buildings","_building","_checkenterable","_ok","_keywords","_classnames"];
 _pos                = _this select 0;
 _radius             = _this select 1;
 _checkenterable     = if (count _this > 2) then { _this select 2 } else { true }; 
 
 _allbuildings = [];
 _buildings = [];
+_classnames = 
+[
+    "Land_Radar_F",
+    "Land_Hangar_F",
+    "Cargo_HQ_base_F",
+    "Cargo_House_base_F",
+    "Cargo_Tower_base_F",
+    "Land_Cargo_House_V4_F",
+    "Land_Cargo_HQ_V4_F",
+    "Land_Cargo_Patrol_V4_F",
+    "Land_Cargo_Tower_V4_F",
+    "Land_Barracks_01_camo_F",
+    "Land_Barracks_01_grey_F",
+    "Land_Barracks_01_dilapidated_F",
+    "Land_PillboxBunker_01_hex_F",
+    "Land_PillboxBunker_01_rectangle_F"
+];
 
 switch (dep_worldname) do {
     case "tanoa";
     case "stratis";
     case "altis": {
-        _buildings = nearestObjects [_pos, ["Cargo_HQ_base_F","Cargo_House_base_F","Cargo_Tower_base_F"], _radius];
+        _buildings = nearestObjects [_pos, _classnames, _radius];
     };
     default {
         _allbuildings = nearestObjects [_pos, ["House"], _radius];

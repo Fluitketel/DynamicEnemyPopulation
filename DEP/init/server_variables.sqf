@@ -64,7 +64,7 @@ switch (dep_worldname) do {
         if (isNil "dep_aa_camps")           then { dep_aa_camps         = 3; };
         if (isNil "dep_patrols")            then { dep_patrols          = 14; };
         if (isNil "dep_bunkers")            then { dep_bunkers          = 5; };
-        if (isNil "dep_military")           then { dep_military         = 0; };
+        if (isNil "dep_military")           then { dep_military         = 5; };
 		if (isNil "dep_ambushes")           then { dep_ambushes         = 20; };
 		if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 40; };
         

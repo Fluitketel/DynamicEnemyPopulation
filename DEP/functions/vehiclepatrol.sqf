@@ -16,12 +16,13 @@
 */
 // This file makes a vehicle patrol the given area.
 
-private ["_pos","_wppos","_group","_list","_road","_wp","_waypoints","_numwp"];
+private ["_pos","_wppos","_group","_list","_road","_wp","_waypoints","_numwp","_rad"];
 _pos = _this select 0;
 _group = _this select 1;
+_rad = if ((count _this) > 2) then { (_this select 2) } else { dep_veh_pat_rad };
 
 _numwp = 4;
-_list = _pos nearRoads dep_veh_pat_rad;
+_list = _pos nearRoads _rad;
 _waypoints = [];
 
 for "_y" from 0 to (_numwp - 1) do {
@@ -37,11 +38,11 @@ for "_y" from 0 to (_numwp - 1) do {
 		
 		// Check if too close to other waypoints
 		{
-			if ((_x distance _wppos) < (dep_veh_pat_rad * 0.2)) exitWith { _tooclose = true; };
+			if ((_x distance _wppos) < (_rad * 0.2)) exitWith { _tooclose = true; };
 		} forEach _waypoints;
 		
 		// Check if too close to location center
-		if ((_wppos distance _pos) < (dep_veh_pat_rad / 3)) then { _toocentered = true; };
+		if ((_wppos distance _pos) < (_rad / 3)) then { _toocentered = true; };
 		
 		if (!_toocentered && !_tooclose) then { _valid = true; };
 	};
@@ -53,7 +54,7 @@ if ((count _waypoints) < _numwp) then
     "Vehicle patrol couldn't find enough roads, finding random waypoints instead." spawn dep_fnc_log;
     while {(count _waypoints) < _numwp} do 
 	{
-        _wppos = [_pos, (dep_veh_pat_rad / 3) + (random (dep_veh_pat_rad * (2/3))), (random 360)] call BIS_fnc_relPos;
+        _wppos = [_pos, (_rad / 3) + (random (_rad * (2/3))), (random 360)] call BIS_fnc_relPos;
 		if !(surfaceIsWater _wppos) then 
 		{
 			_waypoints = _waypoints + [_wppos];

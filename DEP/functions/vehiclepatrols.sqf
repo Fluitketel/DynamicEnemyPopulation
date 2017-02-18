@@ -97,6 +97,8 @@ dep_fnc_spawn_vehiclepatrol =
     if (isNull _end) exitWith { objNull; };
     
     // Create the vehicle
+    _vehicle = objNull;
+    _group = grpNull;
     if (dep_civilians && (random 1) < 0.5) then {
         // Civilian vehicle
         _vehicle = (dep_civ_veh call BIS_fnc_selectRandom) createVehicle (getPos _start);
@@ -113,48 +115,7 @@ dep_fnc_spawn_vehiclepatrol =
         _vehicle = (dep_ground_vehicles call BIS_fnc_selectRandom) createVehicle (getPos _start);
         _vehicle setDir ([_start] call dep_fnc_roaddir);
         [_vehicle] spawn dep_fnc_vehicledamage;
-        
-        _group = createGroup dep_side;
-        _units = [];
-        _soldiername = "";
-        if !(_vehicle isKindOf "Tank" || _vehicle isKindOf "Wheeled_APC_F") then {
-            _units = dep_guer_units;
-            _soldiername = _units call BIS_fnc_selectRandom;
-        } else {
-            _units = dep_mil_units;
-            _soldiername = dep_u_vehicle_crew;
-        };
-        _spawnpos = (getPos _start) findEmptyPosition [0, 10, _soldiername]; 
-        _soldier = [_group, _soldiername, _spawnpos] call dep_fnc_createunit;
-        _soldier assignAsDriver _vehicle;
-        _soldier moveInDriver _vehicle;
-        
-        _positions = _vehicle emptyPositions "Gunner";
-        if (_positions > 0) then {
-            if (_vehicle isKindOf "Tank" || _vehicle isKindOf "Wheeled_APC_F") then {
-                _soldiername = dep_u_vehicle_crew;
-            } else {
-                _soldiername = _units call BIS_fnc_selectRandom;
-            };
-            _soldier = [_group, _soldiername, _spawnpos] call dep_fnc_createunit;
-            _soldier assignAsGunner _vehicle;
-            _soldier moveInGunner _vehicle;
-        };
-        if (_vehicle isKindOf "Tank" || _vehicle isKindOf "Wheeled_APC_F") then {
-            _soldier = [_group, dep_u_vehicle_cmnd, _spawnpos] call dep_fnc_createunit;
-            _soldier assignAsCommander _vehicle;
-            _soldier moveInCommander _vehicle;
-        };
-        _freeCargoPositions = _vehicle emptyPositions "cargo";
-        if (_freeCargoPositions >= 1) then {
-            _freeCargoPositions = round random _freeCargoPositions;
-            for "_y" from 1 to _freeCargoPositions do {
-                _soldiername = _units call BIS_fnc_selectRandom;
-                _soldier = [_group, _soldiername, _spawnpos] call dep_fnc_createunit;
-                _soldier assignAsCargo _vehicle;
-                _soldier moveInCargo _vehicle;
-            };
-        };
+        _group = [_vehicle] call dep_fnc_vehicle_fill;
     };
     
     _wp = _group addWaypoint [getPos _target, 0];

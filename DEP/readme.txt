@@ -1,8 +1,6 @@
 DYNAMIC ENEMY POPULATION 
-  by Fluit 
-    bugs & feedback :   https://github.com/Fluitketel/DynamicEnemyPopulation or fluitketel@outlook.com
-      last revision :   2016-08-02
-            version :   0.6.0
+by Fluit 
+bugs & feedback :   https://github.com/Fluitketel/DynamicEnemyPopulation
     
 This script creates enemies all across the map including:
  - units in buildings
@@ -10,7 +8,6 @@ This script creates enemies all across the map including:
  - patroling vehicles
  - roadblocks
  - anti-air camps
- - mortar camps
  - anti-tank camps
  - IED's
  - mines (AT & APERS)

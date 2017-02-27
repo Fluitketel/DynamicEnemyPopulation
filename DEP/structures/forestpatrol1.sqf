@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with Dynamic Enemy Population.  If not, see <http://www.gnu.org/licenses/>.
 */
-// This file spawns a roadblock at the given location.
+// This file spawns a forest patrol at the given location.
 params ['_location'];
 private ["_pos","_radius","_paths","_path","_temp","_wp1","_wp2","_minepos","_group","_wp","_soldier","_soldiername","_groups","_totalenemies","_objects","_houses"];
 _pos = _location select 0;
@@ -26,7 +26,7 @@ _objects = [];
 
 _group = createGroup dep_side;
 _groups = _groups + [_group];
-_enemyamount = (dep_max_ai_loc / 2) + (round random (dep_max_ai_loc / 2));
+_enemyamount = round((dep_max_ai_loc / 2) + (random (dep_max_ai_loc / 2)));
 
 for "_c" from 1 to _enemyamount do {
     _soldiername = dep_guer_units call BIS_fnc_selectRandom;

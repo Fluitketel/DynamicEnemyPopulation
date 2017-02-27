@@ -110,7 +110,7 @@ if ((_location select 1) in ["roadpop","town"]) then {
     if ((_location select 1) == "town") then {
         _enemyamount = dep_max_ai_loc; // Max amount of enemies in towns
     } else {
-        _enemyamount = (dep_max_ai_loc / 2) + (round random (dep_max_ai_loc / 2));
+        _enemyamount = round((dep_max_ai_loc / 2) + (random (dep_max_ai_loc / 2)));
     };
     _spawnpositions = [];
     {

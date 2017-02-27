@@ -439,6 +439,72 @@ if (dep_aa_camps > 0) then
 };
 
 // *********************
+// MORTAR CAMPS
+// *********************
+if (dep_mortars > 0) then
+{
+	if (dep_debug) then {
+		_starttime = time;
+		"Finding mortar camps" spawn dep_fnc_log;
+	};
+
+	_mortarcamps = [];
+	_fckit = false;
+	for "_c" from 1 to dep_mortars do {
+		_valid = false;
+		while {!_valid} do {
+			if ((time - _starttime) > 30) exitWith {
+				_fckit = true;
+			};
+			_pos = [] call dep_fnc_random_position;
+			_safe = [_pos, dep_safe_rad + 50] call dep_fnc_outsidesafezone;
+			if (_safe) then {
+				_flatPos = _pos isFlatEmpty [15, 0, 0.2, 12, 0, false];
+				// Check if position is flat and empty
+				if (count _flatPos == 3) then {
+					_distance = true;
+					{
+						if ((_pos distance _x) < 3000) exitWith { _distance = false; };
+					} foreach _mortarcamps;
+					// Check distance between other mortar camps
+					if (_distance) then {
+						_valid = true;
+						_mortarcamps = _mortarcamps + [_pos];
+						_location = [];
+						_location set [0, _pos];            // position
+						_location set [1, "mortar"];        // location type
+						_location set [2, 50];              // radius
+						_location set [3, false];           // location active
+						_location set [4, []];              // enemy groups
+						_location set [5, 0];               // time last active
+						_location set [6, 0];               // enemy amount
+						_location set [7, false];           // location cleared
+						_location set [8, []];              // objects to cleanup
+						_location set [9, 0];               // possible direction of objects
+						_location set [10, []];             // civilians
+						_location set [11, ""];             // marker
+                        _location set [12, 0];              // time last cleared
+						dep_locations = dep_locations + [_location];
+						dep_loc_cache = dep_loc_cache + [[]];
+					};
+				};
+			};
+		};
+		if (_fckit) exitWith {
+			"Mortar camps not found in time" spawn dep_fnc_log;
+		};
+	};
+	_mortarcamps = nil;
+
+	if (dep_debug) then {
+		_parttime = time - _starttime;
+		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		_totaltime = _totaltime + _parttime;
+	};
+	sleep 0.5;
+};
+
+// *********************
 // PATROLS
 // *********************
 if (dep_patrols > 0) then 
@@ -538,7 +604,7 @@ if (dep_forest_patrols > 0) then
 					if (_x select 1 == "forpat") then {
 						_loc_pos    = _x select 0;
 						_radius     = _x select 2;
-						if ((_pos distance _loc_pos) < (_radius + 500)) exitWith { _distance = false; };
+						if ((_pos distance _loc_pos) < (_radius + 250)) exitWith { _distance = false; };
 					};
 				} foreach dep_locations;
 				if (_distance) then {
@@ -673,6 +739,7 @@ if (dep_debug) then
             case "military":        { _m setMarkerColor "ColorPink";};
             case "bunker":          { _m setMarkerColor "ColorBrown";};
             case "ambush":          { _m setMarkerColor "ColorBlack";};
+            case "mortar":          { _m setMarkerColor "ColorWhite";};
         };
         _m setMarkerBrush "Solid";
         _m setMarkerAlpha 0.7;  
@@ -773,6 +840,9 @@ publicVariable "dep_ready";
 
 // Create vehicle patrols
 [] spawn dep_fnc_vehiclepatrols;
+
+// Start mortar script
+[] spawn dep_fnc_mortars;
 
 dep_countunits = false;
 while {true} do 
@@ -893,12 +963,17 @@ while {true} do
                 };
             } forEach dep_players;
             
-            if (_type == "antiair") then {
-                // Anti air locations have 3x greater activation distance
-                if (_closest < (_radius + (dep_act_dist * 3))) then { _close = true; };
-            } else {
-                if (_closest < (_radius + dep_act_dist)) then { _close = true; };
-            };
+            switch (_type) do {
+				case "antiair": {
+					if (_closest < (_radius + (dep_act_dist * 3))) then { _close = true; };
+				};
+				case "mortar": {
+					if (_closest < (_radius + (dep_act_dist * 5))) then { _close = true; };
+				};
+				default {
+					if (_closest < (_radius + dep_act_dist)) then { _close = true; };
+				};
+			};
 
             // Don't activate when players are too close
             if (_closest < (2 * _radius) && _type != "patrol") then { _tooclose = true; };

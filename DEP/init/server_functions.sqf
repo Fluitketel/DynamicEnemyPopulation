@@ -64,6 +64,7 @@ dep_fnc_vegetation              = compile preprocessFileLineNumbers (dep_directo
 dep_fnc_towns                   = compile preprocessFileLineNumbers (dep_directory+"functions\towns.sqf");
 dep_fnc_airpatrols              = compile preprocessFileLineNumbers (dep_directory+"functions\airpatrols.sqf");
 dep_fnc_vehiclepatrols          = compile preprocessFileLineNumbers (dep_directory+"functions\vehiclepatrols.sqf");
+dep_fnc_mortars                 = compile preprocessFileLineNumbers (dep_directory+"functions\mortars.sqf");
 dep_fnc_scriptedspawnpos        = compile preprocessFileLineNumbers (dep_directory+"functions\scriptedspawnpos.sqf");
 dep_fnc_update_marker           = compile preprocessFileLineNumbers (dep_directory+"functions\updatemarker.sqf");
 dep_fnc_players_within_range    = compile preprocessFileLineNumbers (dep_directory+"functions\playerswithinrange.sqf");

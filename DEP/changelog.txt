@@ -1,3 +1,8 @@
+Version 0.7.0
+=============
+* Added: mortar camps----
+* Changed: reduced forest patrol spacing
+
 Version 0.6.1
 =============
 * Added: enemy presence modifier (set dep_enemy_presence to 0.5 to spawn only half of the zones)

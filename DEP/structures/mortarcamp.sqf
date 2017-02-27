@@ -16,89 +16,74 @@
 */
 // This file spawns a mortar camp.
 
-private ["_pos", "_dir", "_newpos", "_campgroup", "_prop", "_soldier", "_center", "_amountofmortars","_totalenemies","_groups","_objects"];
-_pos 				= _this select 0; // Camp position
-_dir 				= _this select 1; // Camp direction
-_amountofmortars 	= 1 + (round random 2);
+private ["_pos", "_dir", "_gun", "_campgroup", "_gunner", "_groups", "_totalenemies", "_objects","_spawnpos"];
+_pos    = _this select 0; // position
+_dir    = _this select 1; // direction
 
-_totalenemies = 0;
 _groups = [];
+_totalenemies = 0;
 _objects = [];
 
-_center = "Box_East_AmmoVeh_F" createVehicle _pos;
-_center setDir _dir;
+_campgroup = createGroup dep_side;
+_groups = _groups + [_campgroup];
+_campgroup setFormDir _dir;
 
-_newpos = [_center, 7, (_dir + 45)] call BIS_fnc_relPos;
-_prop = "Land_PowerGenerator_F" createVehicle _newpos;
-_prop setDir (_dir + 110);
+_objs = 
+[
+	["Land_BagFence_01_long_green_F",[1.23926,-0.155762,-0.000999928],270,1,0,[],"","",true,false], 
+	["Land_BagFence_01_long_green_F",[-1.26685,0.0556641,-0.000999928],90,1,0,[],"","",true,false], 
+	["Land_BagFence_01_corner_green_F",[1.52417,1.80615,-0.000999928],270,1,0,[],"","",true,false], 
+	["Land_BagFence_01_corner_green_F",[-1.56714,-1.9458,-0.000999928],90,1,0,[],"","",true,false], 
+	["Land_BagFence_01_corner_green_F",[-1.65942,1.896,-0.000999928],0,1,0,[],"","",true,false], 
+	["Land_BagFence_01_corner_green_F",[1.69653,-2.07227,-0.000999928],180,1,0,[],"","",true,false], 
+	["B_Mortar_01_F",[-3.48462,-0.183105,-0.0384116],359.999,1,0,[],"mortar1","",true,false], 
+	["B_Mortar_01_F",[3.52515,-0.1875,-0.0383983],179.999,1,0,[],"mortar2","",true,false], 
+	["Land_BagFence_01_long_green_F",[-3.26611,-2.30811,-0.000999928],0,1,0,[],"","",true,false], 
+	["Land_BagFence_01_long_green_F",[3.37817,2.19336,-0.000999928],0,1,0,[],"","",true,false], 
+	["Land_BagFence_01_long_green_F",[-3.6311,2.19824,-0.000999928],0,1,0,[],"","",true,false], 
+	["Land_WoodenCrate_01_stack_x3_F",[2.20288,3.69238,0],24.843,1,0,[],"","",true,false], 
+	["Land_BagFence_01_long_green_F",[3.74316,-2.31299,-0.000999928],0,1,0,[],"","",true,false], 
+	["Sign_Arrow_Blue_F",[-2.54346,4.75488,0],0,1,0,[],"","",true,false], 
+	["Land_WoodenCrate_01_F",[4.11328,3.6499,4.76837e-007],75.6395,1,0.0116541,[],"","",true,false], 
+	["Land_BagFence_01_corner_green_F",[5.34985,1.89111,-0.000999928],0,1,0,[],"","",true,false], 
+	["Land_BagFence_01_corner_green_F",[-5.31274,-2.06738,-0.000999928],180,1,0,[],"","",true,false], 
+	["Land_BagFence_01_long_green_F",[5.74243,0.0507813,-0.000999928],90,1,0,[],"","",true,false], 
+	["Land_BagFence_01_long_green_F",[-5.77002,-0.150879,-0.000999928],270,1,0,[],"","",true,false], 
+	["Land_BagFence_01_corner_green_F",[-5.48511,1.81104,-0.000999928],270,1,0,[],"","",true,false], 
+	["Land_BagFence_01_corner_green_F",[5.44189,-1.95068,-0.000999928],90,1,0,[],"","",true,false], 
+	["Land_WoodenCrate_01_stack_x5_F",[-4.31763,-4.03076,0],337.302,1,0,[],"","",true,false]
+];
+_return = [_pos, _dir, _objs] call BIS_fnc_ObjectsMapper;
 
-_prop = "Land_CanisterFuel_F" createVehicle _newpos;
-_prop setDir _dir;
+_spawnpos = [_pos, 30, true] call dep_fnc_scriptedspawnpos;
+_spawnpos = _spawnpos select 0;
 
-_wall = ["Land_Mound01_8m_F", "Land_HBarrier_5_F"] call BIS_fnc_selectRandom;
-_newpos = [_center, 10, (_dir + 270)] call BIS_fnc_relPos;
-_newpos = [_newpos, 4, _dir] call BIS_fnc_relPos;
-_prop = _wall createVehicle _newpos;
-_prop setDir (_dir + 270);
+_gunpos = getPos mortar1;
+_gundir = getDir mortar1;
+deleteVehicle mortar1;
+_gun = dep_static_mortar createVehicle _gunpos;
+_objects = _objects + [_gun];
+_gun setPos _gunpos;
+_gun setDir _gundir;
+_gun addEventHandler["Fired",{if (!isPlayer (gunner _gun)) then { _gun setVehicleAmmo 1; };}];
 
-_newpos = [_center, 10, (_dir + 270)] call BIS_fnc_relPos;
-_newpos = [_newpos, 2, (_dir + 180)] call BIS_fnc_relPos;
-_prop = _wall createVehicle _newpos;
-_prop setDir (_dir + 270);
+_gunner = [_campgroup, dep_u_soldier, _spawnpos] call dep_fnc_createunit;
+_gunner assignAsGunner _gun;
+_gunner moveInGunner _gun;
+_totalenemies = _totalenemies + 1;
 
-_pallets = ["Land_Pallet_MilBoxes_F", "Land_PaperBox_open_full_F", "Land_Pallets_stack_F"];
-_newpos = [_center, 7, (_dir + 180)] call BIS_fnc_relPos;
-_prop = (_pallets call BIS_fnc_selectRandom) createVehicle _newpos;
-_prop setDir _dir;
-_newpos = [_center, 7, (_dir + 150)] call BIS_fnc_relPos;
-_prop = (_pallets call BIS_fnc_selectRandom) createVehicle _newpos;
-_prop setDir (_dir + 30);
+_gunpos = getPos mortar2;
+_gundir = getDir mortar2;
+deleteVehicle mortar2;
+_gun = dep_static_mortar createVehicle _gunpos;
+_objects = _objects + [_gun];
+_gun setPos _gunpos;
+_gun setDir _gundir;
+_gun addEventHandler["Fired",{if (!isPlayer (gunner _gun)) then { _gun setVehicleAmmo 1; };}];
 
+_gunner = [_campgroup, dep_u_soldier, _spawnpos] call dep_fnc_createunit;
+_gunner assignAsGunner _gun;
+_gunner moveInGunner _gun;
+_totalenemies = _totalenemies + 1;
 
-_newpos = [_center, 10, (_dir + 200)] call BIS_fnc_relPos;
-_prop = (["Land_Cargo20_military_green_F", "Land_Cargo20_grey_F", "Land_Cargo20_sand_F"] call BIS_fnc_selectRandom) createVehicle _newpos;
-_prop setDir (_dir + 15);
-
-_mortargroup = createGroup dep_side;
-
-_newpos = [_center, 10, (_dir + 45)] call BIS_fnc_relPos;
-_soldier = [_mortargroup, dep_u_g_sl, _newpos] call dep_fnc_createunit;
-_soldier = [_mortargroup, dep_u_g_at, _newpos] call dep_fnc_createunit;
-_soldier = [_mortargroup, dep_u_g_ar, _newpos] call dep_fnc_createunit;
-_soldier = [_mortargroup, dep_u_g_medic, _newpos] call dep_fnc_createunit;
-_soldier = [_mortargroup, dep_u_g_gl, _newpos] call dep_fnc_createunit;
-_totalenemies = _totalenemies + 5;
-[_mortargroup, 25] spawn dep_fnc_unitpatrol;
-
-_groups = _groups + [_mortargroup];
-_mortargroup setFormDir _dir;
-_newdir = _dir;
-for "_c" from 1 to _amountofmortars do {
-    _newdir = _newdir + (360 / _amountofmortars);
-    _newpos = [_center, 1, _newdir] call BIS_fnc_relPos;
-    _mortar = "I_G_Mortar_01_F" createVehicle _newpos;
-    _objects = _objects + [_mortar];
-    _mortar setDir _newdir;
-    if (dep_allow_mortars) then
-    {
-        _mortar addEventHandler["Fired", {if (!isPlayer (gunner (_this select 0))) then { (_this select 0) setVehicleAmmo 1; };}];
-    } else {
-        _mortar addEventHandler["Fired", {
-            if (isPlayer (gunner (_this select 0))) then {  
-                (_this select 0) setDamage 1; 
-                deleteVehicle (_this select 6);
-                "M_NLAW_AT_F" createVehicle (position (_this select 0));
-            } else {
-                (_this select 0) setVehicleAmmo 1;
-            };
-        }];
-        // This will work once BIS fix the eventhandler for remote objects http://feedback.arma3.com/view.php?id=21308
-        _mortar addEventHandler["WeaponDisassembled", { deleteVehicle (_this select 1); deleteVehicle (_this select 2); }];
-    };
-    _soldier = [_mortargroup, dep_u_g_soldier, _pos] call dep_fnc_createunit;
-    _totalenemies = _totalenemies + 1;
-    _soldier assignAsGunner _mortar;
-    _soldier moveInGunner _mortar;
-};
-
-[_totalenemies,_groups,_objects];
+[_totalenemies, _groups, _objects];

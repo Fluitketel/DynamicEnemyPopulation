@@ -67,6 +67,13 @@ if ((_location select 1) == "forpat") then {
     _objects = _objects + (_result select 2);
 };
 
+if ((_location select 1) == "mortar") then {
+    _result = [_pos, random 360] call dep_fnc_mortarcamp;
+    _totalenemies = _totalenemies + (_result select 0);
+    _groups = _groups + (_result select 1);
+    _objects = _objects + (_result select 2);
+};
+
 if ((_location select 1) == "bunker") then {
     _result = [];
     _type = ["at","barracks1","barracks2","ins_camp1"] call BIS_fnc_selectRandom;
@@ -75,7 +82,7 @@ if ((_location select 1) == "bunker") then {
         case "at": {        _result = [_pos, random 360] call dep_fnc_atcamp; };
         case "barracks1": { _result = [_pos, random 360] call dep_fnc_barracks1; };
         case "barracks2": { _result = [_pos, random 360] call dep_fnc_barracks2; };
-        case "mortar": {    _result = [_pos, random 360] call dep_fnc_mortarcamp; };
+        //case "mortar": {    _result = [_pos, random 360] call dep_fnc_mortarcamp; };
         case "ins_camp1": { _result = [_pos, random 360] call dep_fnc_insurgentcamp1; };
     };
     _totalenemies = _totalenemies + (_result select 0);

@@ -16,7 +16,7 @@
 */
 // This file creates all the server variables
 
-dep_version                 = "0.6.1"; publicVariable "dep_version";
+dep_version                 = "0.7.0"; publicVariable "dep_version";
 dep_worldname   			= toLower(worldName);
 dep_total_ai    			= 0;
 dep_total_civ   			= 0;
@@ -45,6 +45,7 @@ switch (dep_worldname) do {
         if (isNil "dep_military")           then { dep_military         = 8; };
 		if (isNil "dep_ambushes")           then { dep_ambushes         = 10; };
         if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+        if (isNil "dep_mortars")            then { dep_mortars          = 5; };
     };
     case "stratis": {
         if (isNil "dep_map_center")         then { dep_map_center       = [4096, 4096]; };
@@ -56,6 +57,7 @@ switch (dep_worldname) do {
         if (isNil "dep_military")           then { dep_military         = 3; };
 		if (isNil "dep_ambushes")           then { dep_ambushes         = 3; };
         if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+        if (isNil "dep_mortars")            then { dep_mortars          = 1; };
     };
     case "tanoa": {
         if (isNil "dep_map_center")         then { dep_map_center       = [7680, 7680]; };
@@ -67,6 +69,7 @@ switch (dep_worldname) do {
         if (isNil "dep_military")           then { dep_military         = 5; };
 		if (isNil "dep_ambushes")           then { dep_ambushes         = 20; };
 		if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 40; };
+		if (isNil "dep_mortars")            then { dep_mortars          = 3; };
         
         if (isNil "dep_side")               then { dep_side             = independent; };           // Enemy side (east, west, independent)
         if (isNil "dep_air_patrols")    	then { dep_air_patrols 		= 2; };           	        // Number of patroling air vehicles
@@ -82,6 +85,7 @@ switch (dep_worldname) do {
         if (isNil "dep_military")           then { dep_military         = 4; };
 		if (isNil "dep_ambushes")           then { dep_ambushes         = 2; };
         if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+        if (isNil "dep_mortars")            then { dep_mortars          = 2; };
     };
     case "chernarus": {
         if (isNil "dep_map_center")         then { dep_map_center       = [7680, 7680]; };
@@ -93,6 +97,7 @@ switch (dep_worldname) do {
         if (isNil "dep_military")           then { dep_military         = 2; };
 		if (isNil "dep_ambushes")           then { dep_ambushes         = 5; };
         if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+        if (isNil "dep_mortars")            then { dep_mortars          = 3; };
     };
     case "woodland_acr": {
         if (isNil "dep_map_center")         then { dep_map_center       = [3840, 3840]; };
@@ -104,6 +109,7 @@ switch (dep_worldname) do {
         if (isNil "dep_military")           then { dep_military         = 3; };
 		if (isNil "dep_ambushes")           then { dep_ambushes         = 2; };
         if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+        if (isNil "dep_mortars")            then { dep_mortars          = 1; };
     };
 	case "kunduz": {
         if (isNil "dep_map_center")         then { dep_map_center       = [2560, 2560]; };
@@ -115,6 +121,7 @@ switch (dep_worldname) do {
         if (isNil "dep_military")           then { dep_military         = 0; };
         if (isNil "dep_ambushes")           then { dep_ambushes         = 3; };
         if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+        if (isNil "dep_mortars")            then { dep_mortars          = 1; };
     };
 	case "zargabad": {
         if (isNil "dep_map_center")         then { dep_map_center       = [4096, 4096]; };
@@ -126,6 +133,7 @@ switch (dep_worldname) do {
         if (isNil "dep_military")           then { dep_military         = 3; };
 		if (isNil "dep_ambushes")           then { dep_ambushes         = 2; };
         if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+        if (isNil "dep_mortars")            then { dep_mortars          = 1; };
     };
     default {
         diag_log format ["DEP: Unknown map %1. Attempting to set default values...", worldName];
@@ -146,7 +154,8 @@ switch (dep_worldname) do {
         if (isNil "dep_bunkers")            then { dep_bunkers          = round (0.0026 * (dep_map_center select 0)); };
         if (isNil "dep_military")           then { dep_military         = round (0.0008 * (dep_map_center select 0)); };
         if (isNil "dep_ambushes")           then { dep_ambushes         = round (0.0004 * (dep_map_center select 0)); };
-        if (isNil "dep_forest_patrols")     then { dep_forest_patrols  = 0; };
+        if (isNil "dep_forest_patrols")     then { dep_forest_patrols   = 0; };
+        if (isNil "dep_mortars")            then { dep_mortars          = 1; };
     };
 };
 
@@ -255,6 +264,7 @@ switch (dep_side) do
 		if (isNil "dep_static_hmg") 		then { dep_static_hmg		= "O_HMG_01_high_F"; };
 		if (isNil "dep_static_gmg") 		then { dep_static_gmg		= "O_GMG_01_high_F"; };
 		if (isNil "dep_static_hmg_tri") 	then { dep_static_hmg_tri 	= "O_HMG_01_F"; };
+		if (isNil "dep_static_mortar") 	    then { dep_static_mortar 	= "O_Mortar_01_F"; };
 		
 		if (isNil "dep_box_weapons") 		then { dep_box_weapons		= "Box_East_Wps_F"; };
 		if (isNil "dep_box_special") 		then { dep_box_special		= "Box_East_WpsSpecial_F"; };
@@ -289,6 +299,7 @@ switch (dep_side) do
 		if (isNil "dep_static_hmg") 		then { dep_static_hmg		= "B_HMG_01_high_F"; };
 		if (isNil "dep_static_gmg") 		then { dep_static_gmg		= "B_GMG_01_high_F"; };
 		if (isNil "dep_static_hmg_tri") 	then { dep_static_hmg_tri 	= "B_HMG_01_F"; };
+        if (isNil "dep_static_mortar") 	    then { dep_static_mortar 	= "B_Mortar_01_F"; };
 		
 		if (isNil "dep_box_weapons") 		then { dep_box_weapons 		= "Box_NATO_Wps_F"; };
 		if (isNil "dep_box_special") 		then { dep_box_special 		= "Box_NATO_WpsSpecial_F"; };
@@ -353,6 +364,7 @@ switch (dep_side) do
 		if (isNil "dep_static_hmg") 		then { dep_static_hmg		= "I_HMG_01_high_F"; };
 		if (isNil "dep_static_gmg") 		then { dep_static_gmg		= "I_GMG_01_high_F"; };
 		if (isNil "dep_static_hmg_tri") 	then { dep_static_hmg_tri 	= "I_HMG_01_F"; };
+        if (isNil "dep_static_mortar") 	    then { dep_static_mortar 	= "I_G_Mortar_01_F"; };
 		
 		if (isNil "dep_box_weapons") 		then { dep_box_weapons		= "Box_IND_Wps_F"; };
 		if (isNil "dep_box_special") 		then { dep_box_special		= "Box_IND_WpsSpecial_F"; };

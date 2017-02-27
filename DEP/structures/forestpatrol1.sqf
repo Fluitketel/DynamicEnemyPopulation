@@ -26,8 +26,9 @@ _objects = [];
 
 _group = createGroup dep_side;
 _groups = _groups + [_group];
+_enemyamount = (dep_max_ai_loc / 2) + (round random (dep_max_ai_loc / 2));
 
-for "_c" from 1 to (2 + round (random 4)) do {
+for "_c" from 1 to _enemyamount do {
     _soldiername = dep_guer_units call BIS_fnc_selectRandom;
     _soldier = [_group, _soldiername, _pos] call dep_fnc_createunit;
     _totalenemies = _totalenemies + 1;

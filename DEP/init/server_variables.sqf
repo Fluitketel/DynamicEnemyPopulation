@@ -16,7 +16,7 @@
 */
 // This file creates all the server variables
 
-dep_version                 = "0.7.0"; publicVariable "dep_version";
+dep_version                 = "0.6.2"; publicVariable "dep_version";
 dep_worldname   			= toLower(worldName);
 dep_total_ai    			= 0;
 dep_total_civ   			= 0;

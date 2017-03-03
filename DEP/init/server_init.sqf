@@ -31,12 +31,13 @@ if (dep_debug) then {
     waitUntil {time > 0};
 };
 
-private ["_locations","_pos","_flatPos","_building","_units"];
+private ["_locations","_pos","_flatPos","_building","_units","_createdzones"];
 "Initializing DEP . . ." call dep_fnc_log;
 
 _totaltime = 0;
 _starttime = 0;
 _parttime = 0;
+_createdzones = 0;
 
 // *********************
 // MILITARY BUILDINGS
@@ -60,9 +61,9 @@ if (dep_military > 0) then
 		_starttime = time;
 		"Creating military areas" spawn dep_fnc_log;
 	};
-	_counter = 0;
+	_createdzones = 0;
 	for [{_x=0}, {_x<=_numbuildings}, {_x=_x+1}] do {
-		if (_counter >= dep_military) exitWith {};
+		if (_createdzones >= dep_military) exitWith {};
 		if (count _buildings == 0) exitWith {};
 		_building = _buildings call BIS_fnc_selectRandom;
 		_buildings = _buildings - [_building];
@@ -95,7 +96,7 @@ if (dep_military > 0) then
                     _location set [12, 0];              // time last cleared
 					dep_locations = dep_locations + [_location];
 					dep_loc_cache = dep_loc_cache + [[]];
-					_counter = _counter + 1;
+					_createdzones = _createdzones + 1;
 				};
 			};
 		};
@@ -105,7 +106,7 @@ if (dep_military > 0) then
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
-		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		["Created %1. Took %2 seconds.", _createdzones, _parttime] spawn dep_fnc_log;
 		_totaltime = _totaltime + _parttime;
 	};
 	sleep 0.5;
@@ -124,6 +125,7 @@ if (dep_town_occupation > 0 && dep_town_occupation <= 1) then
     //_towns = _towns call dep_fnc_shuffle;
     _numberoftowns = ceil ((count _towns) * dep_town_occupation);
     _ownradius = 200;
+    _createdzones = 0;
     for "_c" from 0 to (_numberoftowns - 1) do {
         _pos = _towns call BIS_fnc_selectRandom;
         _towns = _towns - [_pos];
@@ -145,12 +147,13 @@ if (dep_town_occupation > 0 && dep_town_occupation <= 1) then
             _location set [12, 0];              // time last cleared
             dep_locations = dep_locations + [_location];
             dep_loc_cache = dep_loc_cache + [[]];
+            _createdzones = _createdzones + 1;
         };
     };
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
-		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		["Created %1. Took %2 seconds.", _createdzones, _parttime] spawn dep_fnc_log;
 		_totaltime = _totaltime + _parttime;
 	};
 	sleep 0.1;
@@ -166,7 +169,7 @@ if (dep_housepop > 0) then
 		"Finding buildings" spawn dep_fnc_log;
 	};
 	_buildings = nearestObjects [dep_map_center, ["House"], dep_map_radius];
-	_numbuildings = 0;
+	_createdzones = 0;
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
@@ -175,11 +178,11 @@ if (dep_housepop > 0) then
 		_starttime = time;
 		"Populating buildings" spawn dep_fnc_log;
 	};
-
-	while {_numbuildings < dep_housepop} do {
+    
+	while {_createdzones < dep_housepop} do {
 		_building = _buildings call BIS_fnc_selectRandom;
 		if (count _buildings == 0) exitWith { 
-			["Not enough buildings, found %1 of %2.", _numbuildings, dep_housepop] spawn dep_fnc_log; 
+			["Not enough buildings, found %1 of %2.", _createdzones, dep_housepop] spawn dep_fnc_log; 
 		};
 		_buildings = _buildings - [_building];
 		_pos = getPos _building;
@@ -213,7 +216,7 @@ if (dep_housepop > 0) then
                     _location set [12, 0];              // time last cleared
 					dep_locations = dep_locations + [_location];
 					dep_loc_cache = dep_loc_cache + [[]];
-					_numbuildings = _numbuildings + 1;
+					_createdzones = _createdzones + 1;
 				};
 			};
 		};
@@ -223,7 +226,7 @@ if (dep_housepop > 0) then
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
-		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		["Created %1. Took %2 seconds.", _createdzones, _parttime] spawn dep_fnc_log;
 		_totaltime = _totaltime + _parttime;
 	};
 	sleep 0.5;
@@ -241,6 +244,7 @@ if (dep_roadblocks > 0) then
 
 	if (isNil "dep_roads") then { dep_roads = [dep_map_center, dep_map_radius] call dep_fnc_findroads; };
 	_fckit = false;
+    _createdzones = 0;
 	for [{_x=1}, {_x<=dep_roadblocks}, {_x=_x+1}] do {
 		_valid = false;
 		if ((count dep_roads) == 0) exitWith { "Not enough roads!" spawn dep_fnc_log; };
@@ -254,11 +258,14 @@ if (dep_roadblocks > 0) then
 			if (_safe) then {
 				_distance = true;
 				{
-					_loc_pos    = _x select 0;
-					_radius     = _x select 2;
-					_spacing    = 0;
-					if ((_x select 1) == "roadblock") then { _spacing = 1000; };
-					if ((_pos distance _loc_pos) < (_spacing + _radius + 100)) exitWith { _distance = false; };
+					// Ignore distance to patrols, towns, roadpop
+                    if !((_x select 1) == "patrol" || (_x select 1) == "town" || (_x select 1) == "roadpop") then {
+                        _loc_pos    = _x select 0;
+                        _radius     = _x select 2;
+                        _spacing    = 0;
+                        if ((_x select 1) == "roadblock") then { _spacing = 700; };
+                        if ((_pos distance _loc_pos) < (_spacing + _radius + 100)) exitWith { _distance = false; };
+                    };
 				} foreach dep_locations;
 				if (_distance) then {
 					_flatPos = _pos isFlatEmpty [12, 0, 0.3, 12, 0, false];
@@ -281,6 +288,7 @@ if (dep_roadblocks > 0) then
 						dep_locations = dep_locations + [_location];
 						dep_loc_cache = dep_loc_cache + [[]];
 						_valid = true;
+                        _createdzones = _createdzones + 1;
 					};
 				};
 			};
@@ -293,7 +301,7 @@ if (dep_roadblocks > 0) then
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
-		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		["Created %1. Took %2 seconds.", _createdzones, _parttime] spawn dep_fnc_log;
 		_totaltime = _totaltime + _parttime;
 	};
 	sleep 0.5;
@@ -311,6 +319,7 @@ if (dep_ambushes > 0) then
 	
     if (isNil "dep_roads") then { dep_roads = [dep_map_center, dep_map_radius] call dep_fnc_findroads; };
 	_fckit = false;
+    _createdzones = 0;
 	for [{_x=1}, {_x<=dep_ambushes}, {_x=_x+1}] do {
 		_valid = false;
 		if ((count dep_roads) == 0) exitWith { "Not enough roads!" spawn dep_fnc_log; };
@@ -358,6 +367,7 @@ if (dep_ambushes > 0) then
                 _location set [12, 0];              // time last cleared
 				dep_locations = dep_locations + [_location];
 				dep_loc_cache = dep_loc_cache + [[]];
+                _createdzones = _createdzones + 1;
 			};
 		};
 		if (_fckit) exitWith {
@@ -367,7 +377,7 @@ if (dep_ambushes > 0) then
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
-		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		["Created %1. Took %2 seconds.", _createdzones, _parttime] spawn dep_fnc_log;
 	};
 	sleep 0.5;
 };
@@ -384,6 +394,7 @@ if (dep_aa_camps > 0) then
 
 	_aacamps = [];
 	_fckit = false;
+    _createdzones = 0;
 	for "_c" from 1 to dep_aa_camps do {
 		_valid = false;
 		while {!_valid} do {
@@ -420,6 +431,7 @@ if (dep_aa_camps > 0) then
                         _location set [12, 0];              // time last cleared
 						dep_locations = dep_locations + [_location];
 						dep_loc_cache = dep_loc_cache + [[]];
+                        _createdzones = _createdzones + 1;
 					};
 				};
 			};
@@ -432,7 +444,7 @@ if (dep_aa_camps > 0) then
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
-		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		["Created %1. Took %2 seconds.", _createdzones, _parttime] spawn dep_fnc_log;
 		_totaltime = _totaltime + _parttime;
 	};
 	sleep 0.5;
@@ -450,6 +462,7 @@ if (dep_mortars > 0) then
 
 	_mortarcamps = [];
 	_fckit = false;
+    _createdzones = 0;
 	for "_c" from 1 to dep_mortars do {
 		_valid = false;
 		while {!_valid} do {
@@ -486,6 +499,7 @@ if (dep_mortars > 0) then
                         _location set [12, 0];              // time last cleared
 						dep_locations = dep_locations + [_location];
 						dep_loc_cache = dep_loc_cache + [[]];
+                        _createdzones = _createdzones + 1;
 					};
 				};
 			};
@@ -498,7 +512,7 @@ if (dep_mortars > 0) then
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
-		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		["Created %1. Took %2 seconds.", _createdzones, _parttime] spawn dep_fnc_log;
 		_totaltime = _totaltime + _parttime;
 	};
 	sleep 0.5;
@@ -516,6 +530,7 @@ if (dep_patrols > 0) then
 	
     if (isNil "dep_roads") then { dep_roads = [dep_map_center, dep_map_radius] call dep_fnc_findroads; };
 	_fckit = false;
+    _createdzones = 0;
 	for [{_x=1}, {_x<=dep_patrols}, {_x=_x+1}] do {
 		_valid = false;
 		while {!_valid} do {
@@ -553,6 +568,7 @@ if (dep_patrols > 0) then
 					dep_locations = dep_locations + [_location];
 					dep_loc_cache = dep_loc_cache + [[]];
 					_valid = true;
+                    _createdzones = _createdzones + 1;
 				};
 			};
 			//sleep 0.005;
@@ -561,15 +577,12 @@ if (dep_patrols > 0) then
 			"Patrols not found in time" spawn dep_fnc_log;
 		};
 	};
-    /*{
-        _m = createMarker[format["r%1", getPos _x], getPos _x];
-        _m setMarkerType "mil_dot";
-    } forEach dep_roads;*/
+
 	dep_roads = nil;
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
-		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		["Created %1. Took %2 seconds.", _createdzones, _parttime] spawn dep_fnc_log;
 		_totaltime = _totaltime + _parttime;
 	};
 	sleep 0.5;
@@ -587,6 +600,8 @@ if (dep_forest_patrols > 0) then
 	
     if (isNil "dep_paths") then { dep_paths = [dep_map_center, dep_map_radius] call dep_fnc_findpaths; };
 	_fckit = false;
+    _createdzones = 0;
+    
 	for [{_x=1}, {_x<=dep_forest_patrols}, {_x=_x+1}] do {
 		_valid = false;
 		while {!_valid} do {
@@ -625,6 +640,7 @@ if (dep_forest_patrols > 0) then
 					dep_locations = dep_locations + [_location];
 					dep_loc_cache = dep_loc_cache + [[]];
 					_valid = true;
+                    _createdzones = _createdzones + 1;
 				};
 			};
 			//sleep 0.005;
@@ -633,15 +649,12 @@ if (dep_forest_patrols > 0) then
 			"Forest patrols not found in time" spawn dep_fnc_log;
 		};
 	};
-    /*{
-        _m = createMarker[format["r%1", getPos _x], getPos _x];
-        _m setMarkerType "mil_dot";
-    } forEach dep_roads;*/
+
 	dep_paths = nil;
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
-		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		["Created %1. Took %2 seconds.", _createdzones, _parttime] spawn dep_fnc_log;
 		_totaltime = _totaltime + _parttime;
 	};
 	sleep 0.5;
@@ -658,6 +671,7 @@ if (dep_bunkers > 0) then
 	};
 
 	_fckit = false;
+    _createdzones = 0;
 	for [{_x = 0}, {_x < dep_bunkers}, {_x = _x + 1}] do {
 		_valid = false;
 		while {!_valid} do {
@@ -697,6 +711,7 @@ if (dep_bunkers > 0) then
 						dep_locations = dep_locations + [_location];
 						dep_loc_cache = dep_loc_cache + [[]];
 						_valid = true;
+                        _createdzones = _createdzones +1;
 					};
 				};
 			};
@@ -708,7 +723,7 @@ if (dep_bunkers > 0) then
 
 	if (dep_debug) then {
 		_parttime = time - _starttime;
-		["Took %1 seconds.", _parttime] spawn dep_fnc_log;
+		["Created %1. Took %2 seconds.", _createdzones, _parttime] spawn dep_fnc_log;
 		_totaltime = _totaltime + _parttime;
 	};
 	sleep 0.5;

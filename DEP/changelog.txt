@@ -1,8 +1,10 @@
 Version 0.6.2
 =============
 * Added: mortar camp
+* Added: log number of zones per type while initializing
 * Changed: reduced forest patrol spacing
 * Changed: forest patrol enemy amount
+* Changed: roadblocks can spawn closer to other zones
 
 Version 0.6.1
 =============

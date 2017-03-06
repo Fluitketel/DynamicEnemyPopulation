@@ -237,8 +237,8 @@ if (dep_housepop > 0) then
 // *********************
 if (dep_roadblocks > 0) then
 {
-	if (dep_debug) then {
-		_starttime = time;
+	_starttime = time;
+    if (dep_debug) then {
 		"Finding roadblocks" spawn dep_fnc_log;
 	};
 
@@ -312,8 +312,8 @@ if (dep_roadblocks > 0) then
 // *********************
 if (dep_ambushes > 0) then 
 {
-	if (dep_debug) then {
-		_starttime = time;
+	_starttime = time;
+    if (dep_debug) then {
 		"Finding ambushes" spawn dep_fnc_log;
 	};
 	
@@ -387,8 +387,8 @@ if (dep_ambushes > 0) then
 // *********************
 if (dep_aa_camps > 0) then
 {
-	if (dep_debug) then {
-		_starttime = time;
+	_starttime = time;
+    if (dep_debug) then {
 		"Finding aa camps" spawn dep_fnc_log;
 	};
 
@@ -407,11 +407,17 @@ if (dep_aa_camps > 0) then
 				_flatPos = _pos isFlatEmpty [15, 0, 0.2, 12, 0, false];
 				// Check if position is flat and empty
 				if (count _flatPos == 3) then {
-					_distance = true;
-					{
-						if ((_pos distance _x) < 1000) exitWith { _distance = false; };
-					} foreach _aacamps;
-					// Check distance between other AA camps
+                    _distance = true;
+                    {
+                        // Ignore distance to patrols, towns, roadpop
+                        if !((_x select 1) == "patrol" || (_x select 1) == "town" || (_x select 1) == "roadpop") then {
+                            _loc_pos    = _x select 0;
+                            _radius     = _x select 2;
+                            _spacing    = 100;
+                            if ((_x select 1) == "antiair") then { _spacing = 1000; };
+                            if ((_pos distance _loc_pos) < (_spacing + _radius)) exitWith { _distance = false; };
+                        };
+                    } foreach dep_locations;
 					if (_distance) then {
 						_valid = true;
 						_aacamps = _aacamps + [_pos];
@@ -455,8 +461,8 @@ if (dep_aa_camps > 0) then
 // *********************
 if (dep_mortars > 0) then
 {
-	if (dep_debug) then {
-		_starttime = time;
+	_starttime = time;
+    if (dep_debug) then {
 		"Finding mortar camps" spawn dep_fnc_log;
 	};
 
@@ -476,10 +482,16 @@ if (dep_mortars > 0) then
 				// Check if position is flat and empty
 				if (count _flatPos == 3) then {
 					_distance = true;
-					{
-						if ((_pos distance _x) < 3000) exitWith { _distance = false; };
-					} foreach _mortarcamps;
-					// Check distance between other mortar camps
+                    {
+                        // Ignore distance to patrols, towns, roadpop
+                        if !((_x select 1) == "patrol" || (_x select 1) == "town" || (_x select 1) == "roadpop") then {
+                            _loc_pos    = _x select 0;
+                            _radius     = _x select 2;
+                            _spacing    = 100;
+                            if ((_x select 1) == "mortar") then { _spacing = 3000; };
+                            if ((_pos distance _loc_pos) < (_spacing + _radius)) exitWith { _distance = false; };
+                        };
+                    } foreach dep_locations;
 					if (_distance) then {
 						_valid = true;
 						_mortarcamps = _mortarcamps + [_pos];
@@ -523,8 +535,8 @@ if (dep_mortars > 0) then
 // *********************
 if (dep_patrols > 0) then 
 {
-	if (dep_debug) then {
-		_starttime = time;
+	_starttime = time;
+    if (dep_debug) then {
 		"Finding patrols" spawn dep_fnc_log;
 	};
 	
@@ -593,8 +605,8 @@ if (dep_patrols > 0) then
 // *********************
 if (dep_forest_patrols > 0) then 
 {
-	if (dep_debug) then {
-		_starttime = time;
+	_starttime = time;
+    if (dep_debug) then {
 		"Finding forest patrols" spawn dep_fnc_log;
 	};
 	
@@ -665,8 +677,8 @@ if (dep_forest_patrols > 0) then
 // *********************
 if (dep_bunkers > 0) then 
 {
-	if (dep_debug) then {
-		_starttime = time;
+	_starttime = time;
+    if (dep_debug) then {
 		"Finding bunkers" spawn dep_fnc_log;
 	};
 

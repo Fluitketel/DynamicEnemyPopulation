@@ -5,6 +5,8 @@ Version 0.6.2
 * Changed: reduced forest patrol spacing
 * Changed: forest patrol enemy amount
 * Changed: roadblocks can spawn closer to other zones
+* Changed: improved AA camp placement
+* Fixed: time limit for finding zones was not always respected
 
 Version 0.6.1
 =============

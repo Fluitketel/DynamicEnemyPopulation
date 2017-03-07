@@ -16,7 +16,7 @@
 */
 // This file fires mortars from mortar camps
 
-private ["_mortar_loctations", "_player", "_mortars","_mortar","_fired","_firepos","_location","_seq","_spotter","_knowsabout","_continue"];
+private ["_mortar_loctations", "_player", "_players", "_mortars","_mortar","_fired","_firepos","_location","_seq","_spotter","_lastseen","_continue"];
 
 waitUntil {!isNil "dep_mortars"};
 waitUntil {!isNil "dep_players"};
@@ -57,48 +57,51 @@ while {true} do {
     _mortars = [];
     _player = objNull;
     _spotter = objNull;
-    _knowsabout = 0;
+    _tranmissionduration = 40;
+    _players = dep_players call dep_fnc_shuffle;
     
     // Select a player as a possible target
     {
         _spotter = leader _x;
-        {
-            _knowsabout = (_spotter knowsAbout _x);
-            if (_knowsabout > 2) then {
-                if ((random 1) <= 0.3) exitWith {
-                    _player = _x;
+        if (vehicle _spotter isKindOf "Man" && (side _spotter) == dep_side) then {
+            {
+                _allInfo = _spotter targetKnowledge _x;
+                _lastseen = ceil (time - (_allInfo select 2));
+                if (_lastseen >= 1 && _lastseen < 10) then {
+                    if ((random 1) < 0.5) exitWith {
+                        _player = _x;
+                    };
                 };
-            };
-        } forEach dep_players;
-        if !(isNull _player) exitWith {};
-        sleep 1;
+            } forEach _players;
+            if !(isNull _player) exitWith {};
+            sleep 1;
+        };
     } forEach dep_allgroups;
     
     // Transmit fire mission
     if !(isNull _player) then {
         ["The enemy is calling a mortar strike on %1.", _player] spawn dep_fnc_log;
-        sleep 40;
+        // Estimate the player's position
+        _firepos = [getPos _player, random 30, random 360] call BIS_fnc_relPos;
+        
+        // Wait until the transmission is sent
+        sleep _tranmissionduration;
         
         _continue = false;
-        _knowsabout = 0;
         if (alive _spotter && alive _player) then {
-            _knowsabout = (_spotter knowsAbout _player);
-            if ((_spotter knowsAbout _player) > 2) then {
-                _continue = true;
-                _firepos = getPos _player;
-            };
+            _continue = true;
         };
         
-        // Cancel fire mission if the spotter no longer knows where the player is or if the spotter is dead
+        // Cancel fire mission if the spotter or player is dead
         if !(_continue) then {
-            ["Cancelling mortar strike with knowsabout %1.", _knowsabout] spawn dep_fnc_log;
+            "Cancelling mortar strike" spawn dep_fnc_log;
             _player = objNull;
         };
     };
     
     // Check if enemy units are near target position
     if !(isNull _player) then {
-        _nearunits = _firepos nearObjects ["Man", 50];
+        _nearunits = _firepos nearObjects ["Man", 70];
         {
             if ((side _x) == dep_side) exitWith {
                 _player = objNull;
@@ -128,18 +131,19 @@ while {true} do {
         
         // Begin mortar strike
         if ((count _mortars) > 0) then {            
-            ["Firing mortar at player %1 with knowsabout %2.", _player, _knowsabout] spawn dep_fnc_log;
+            ["Firing mortar at player %1", _player] spawn dep_fnc_log;
             {
                 if (alive _x) then {
                     sleep 15 + (random 25);
                     for "_g" from 0 to (ceil random 3) do {
-                        _newpos = [_firepos, 10 + (random 70), random 360] call BIS_fnc_relPos;
+                        _newpos = [_firepos, 5 + (random 50), random 360] call BIS_fnc_relPos;
                         _x setVehicleAmmo 1;
                         _x commandArtilleryFire [_newpos, "8Rnd_82mm_Mo_shells", 1];
                         _fired = true;
-                        sleep 1;
+                        sleep 3;
                     };
                     _x addMagazine "8Rnd_82mm_Mo_shells";
+                    sleep 3;
                 };
             } forEach _mortars; 
         } else {

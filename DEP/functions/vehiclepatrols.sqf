@@ -163,8 +163,7 @@ while {true} do {
         _vehicle = _x;
         if (!isNull _vehicle) then {
             if (!alive _vehicle || !canMove _vehicle || !(alive driver _vehicle)) then {
-                //{deleteVehicle _x} forEach crew _vehicle;
-                //deleteVehicle _vehicle;
+                [_vehicle] spawn dep_fnc_delete_vehicle;
                 _vehicles = _vehicles - [_vehicle];
                 sleep _interval;
             };
@@ -178,11 +177,12 @@ while {true} do {
     _maxvehicles = round random (dep_veh_chance * 4);
     _created = false;
     while {(count _vehicles) < _maxvehicles && dep_num_players > 0 && dep_veh_chance > 0} do {
+        waitUntil {!dep_exceeded_group_limit};
+        waitUntil {!dep_exceeded_ai_limit};
         _vehicle = [] call dep_fnc_spawn_vehiclepatrol;
         if !(isNull _vehicle) then {
             _vehicles = _vehicles + [_vehicle];
             dep_total_veh = count _vehicles;
-            dep_countunits = true;
             _created = true;
             sleep (random _interval);
         };

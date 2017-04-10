@@ -23,10 +23,7 @@ if ((count _this) > 2) then {
     _pos = _this select 2;
 };
 
-_formation = "COLUMN";
-if (random 1 > 0.5) then {
-    _formation = "STAG COLUMN";
-};
+_formation = dep_formations call BIS_fnc_selectRandom;
 
 _houses = [_pos, _radius] call dep_fnc_enterablehouses;
 

@@ -1,3 +1,10 @@
+Version 0.6.3
+=============
+* Added: force despawn of blacklisted locations with "dep_act_bl_force"
+* Added: random patrol formations
+* Fixed: vehicles and helicopters no longer spawn when group/unit limit is reached
+* Fixed: empty or disabled vehicles get cleaned up
+
 Version 0.6.2
 =============
 * Added: mortar camp

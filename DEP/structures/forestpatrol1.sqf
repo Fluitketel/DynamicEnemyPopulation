@@ -16,7 +16,7 @@
 */
 // This file spawns a forest patrol at the given location.
 params ['_location'];
-private ["_pos","_radius","_paths","_path","_temp","_wp1","_wp2","_minepos","_group","_wp","_soldier","_soldiername","_groups","_totalenemies","_objects","_houses"];
+private ["_pos","_radius","_paths","_path","_temp","_wp1","_wp2","_minepos","_group","_wp","_soldier","_soldiername","_groups","_totalenemies","_objects","_houses","_formation"];
 _pos = _location select 0;
 _radius = _location select 2;
 
@@ -55,10 +55,12 @@ if (dep_mines && (random 1) < 0.4) then {
     _mine setDir _temp;
 };
 
+_formation = dep_formations call BIS_fnc_selectRandom;
+
 _wp = _group addWaypoint [_pos, 0];
 _wp setWaypointBehaviour "SAFE";
 _wp setWaypointSpeed "LIMITED";
-_wp setWaypointFormation "COLUMN";
+_wp setWaypointFormation _formation;
 _wp setWaypointTimeOut [0,10,20];
 _wp setWaypointType "MOVE";
 
@@ -68,7 +70,7 @@ if ((count _houses) > 0) then {
     _wp = _group addWaypoint [(getPos _temp), 0];
     _wp setWaypointBehaviour "SAFE";
     _wp setWaypointSpeed "LIMITED";
-    _wp setWaypointFormation "COLUMN";
+    _wp setWaypointFormation _formation;
     _wp setWaypointTimeOut [10,20,40];
     _wp setWaypointType "MOVE";
 };
@@ -86,7 +88,7 @@ _paths = [_pos, _radius] call dep_fnc_findpaths;
 _wp = _group addWaypoint [_wp1, 0];
 _wp setWaypointBehaviour "SAFE";
 _wp setWaypointSpeed "LIMITED";
-_wp setWaypointFormation "COLUMN";
+_wp setWaypointFormation _formation;
 _wp setWaypointTimeOut [10,20,40];
 _wp setWaypointType "MOVE";
 
@@ -102,7 +104,7 @@ _wp2 = _pos;
 _wp = _group addWaypoint [_wp2, 0];
 _wp setWaypointBehaviour "SAFE";
 _wp setWaypointSpeed "LIMITED";
-_wp setWaypointFormation "COLUMN";
+_wp setWaypointFormation _formation;
 _wp setWaypointTimeOut [10,20,40];
 _wp setWaypointType "CYCLE";
 

@@ -48,8 +48,6 @@ dep_fnc_spawn_air =
         };
     };
     
-    dep_countunits = true;
-    
     if (_vehicle isKindOf "Plane") then {
         _vehicle flyInHeight 100;
     } else {
@@ -128,8 +126,7 @@ while {true} do
         {
             if (!alive _vehicle || !canMove _vehicle) then
             {
-                {deleteVehicle _x} forEach crew _vehicle;
-                deleteVehicle _vehicle;
+                [_vehicle] spawn dep_fnc_delete_vehicle;
                 _vehicles = _vehicles - [_vehicle];
                 sleep _interval;
             };
@@ -139,6 +136,8 @@ while {true} do
     } forEach _vehicles;
     while {(count _vehicles) < dep_air_patrols && dep_num_players > 0} do
     {
+        waitUntil {!dep_exceeded_group_limit};
+        waitUntil {!dep_exceeded_ai_limit};
         _vehicle = [_waypoints] call dep_fnc_spawn_air;
         _vehicles = _vehicles + [_vehicle];
         sleep _interval;

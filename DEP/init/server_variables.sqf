@@ -16,7 +16,7 @@
 */
 // This file creates all the server variables
 
-dep_version                 = "0.6.2"; publicVariable "dep_version";
+dep_version                 = "0.6.3"; publicVariable "dep_version";
 dep_worldname   			= toLower(worldName);
 dep_total_ai    			= 0;
 dep_total_civ   			= 0;
@@ -32,6 +32,7 @@ dep_exceeded_ai_limit       = false;
 dep_exceeded_group_limit	= false;
 dep_mrk_location_clear      = "mil_flag";
 dep_mrk_location_hostile    = "mil_objective";
+dep_formations              = ["COLUMN", "FILE", "STAG COLUMN"];
 
 // World specific settings
 switch (dep_worldname) do {
@@ -193,6 +194,7 @@ if (isNil "dep_map_margin")    		then { dep_map_margin 		= 400; };           // 
 if (isNil "dep_air_patrols")    	then { dep_air_patrols 		= 1; };           	// Number of patroling air vehicles
 if (isNil "dep_town_occupation")    then { dep_town_occupation  = 0.7; };           // Percentage of towns that are occupied
 if (isNil "dep_enemy_presence")     then { dep_enemy_presence   = 1; };             // Overall factor for enemy presence (modifies the amount of enemy zones)
+if (isNil "dep_act_bl_force")       then { dep_act_bl_force     = false; };         // Force despawning of enemies in blacklisted locations 
 if (isNil "dep_safe_zone") then 
 { 
     if (getMarkerColor "respawn_west" != "" && dep_own_side == west) then { dep_safe_zone = getMarkerPos "respawn_west"; };

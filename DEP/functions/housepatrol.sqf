@@ -32,7 +32,7 @@ for "_y" from 0 to 8 do {
     _wp = _group addWaypoint [_newpos, _y];
     _wp setWaypointBehaviour "SAFE";
     _wp setWaypointSpeed "LIMITED";
-    _wp setWaypointFormation "COLUMN";
+    _wp setWaypointFormation (dep_formations call BIS_fnc_selectRandom);
     _wp setWaypointTimeOut [0,5,10];
     if (_y < 8) then {
         _wp setWaypointType "MOVE";

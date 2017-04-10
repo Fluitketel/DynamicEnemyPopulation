@@ -74,3 +74,4 @@ dep_fnc_vehicle_fill_guns       = compile preprocessFileLineNumbers (dep_directo
 dep_fnc_vehicle_fill_commander  = compile preprocessFileLineNumbers (dep_directory+"functions\vehicle_fill_commander.sqf");
 dep_fnc_vehicle_fill_cargo      = compile preprocessFileLineNumbers (dep_directory+"functions\vehicle_fill_cargo.sqf");
 dep_fnc_vehicle_fill            = compile preprocessFileLineNumbers (dep_directory+"functions\vehicle_fill.sqf");
+dep_fnc_groupcleanup            = compile preprocessFileLineNumbers (dep_directory+"functions\groupcleanup.sqf");

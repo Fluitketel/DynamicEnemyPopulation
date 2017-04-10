@@ -871,7 +871,6 @@ publicVariable "dep_ready";
 // Start mortar script
 [] spawn dep_fnc_mortars;
 
-dep_countunits = false;
 while {true} do 
 {            
     dep_players = [];
@@ -917,19 +916,20 @@ while {true} do
     };
             
     for "_g" from 0 to (dep_num_loc - 1) do {
-        _location   = dep_locations select _g;
-        _pos        = _location select 0;
-        _type       = _location select 1;
-        _radius     = _location select 2;
-        _active     = _location select 3;
-        _groups     = _location select 4;
-        _time       = _location select 5;
-        _enemies    = _location select 6;
-        _clear      = _location select 7;
-        _close      = false;
-        _tooclose   = false;
-        _holding    = false;
-        _blacklist  = false;
+        _location       = dep_locations select _g;
+        _pos            = _location select 0;
+        _type           = _location select 1;
+        _radius         = _location select 2;
+        _active         = _location select 3;
+        _groups         = _location select 4;
+        _time           = _location select 5;
+        _enemies        = _location select 6;
+        _clear          = _location select 7;
+        _close          = false;
+        _tooclose       = false;
+        _holding        = false;
+        _blacklist      = false;
+        _force_despawn  = false;
         
         // Check if active location is clear
         if (_active && !_clear) then {
@@ -971,6 +971,10 @@ while {true} do
         {
             if ((_pos distance _x) < (_radius * 2)) exitWith {_blacklist = true; };
         } foreach dep_act_bl;
+        
+        if (dep_act_bl_force && _blacklist) then {
+            _force_despawn = true;
+        };
         
         // Check if at least 1 player is close
         if (!_blacklist) then {            
@@ -1058,13 +1062,12 @@ while {true} do
             dep_locations set [_g, _location];
         };
         
-        if (_close && !_clear) then {
+        if (_close && !_clear && !_force_despawn) then {
             // Players are close and location not clear, should enemies be spawned?
             if (!dep_exceeded_group_limit && !dep_exceeded_ai_limit) then {
                 if (!_active && !_tooclose) then {
                     // Location is not cleared and not active => spawn units
                     _handle = _g call dep_fnc_activate;
-                    dep_countunits = true;
                 };
             };
             _time = time;
@@ -1077,52 +1080,50 @@ while {true} do
                 if ((_clear && (time - _time) > (60 * dep_despawn)) || (!_clear && (time - _time) > (60 * (dep_despawn / 2))) ) then {
                     // Deactivate the location
                     _handle = _g call dep_fnc_deactivate;
-                    dep_countunits = true;
                 };
             };
         };
         
-        if (dep_countunits) then
+        dep_allgroups = [];
+        dep_civgroups = [];
+        dep_total_ai = 0;
+        dep_total_civ = 0;
         {
-            dep_allgroups = [];
-            dep_civgroups = [];
-            dep_total_ai = 0;
-            dep_total_civ = 0;
-            {
-                if (side _x == dep_side) then { 
-                    dep_allgroups = dep_allgroups + [_x];
-                    _grp = _x;
-                    {
-                        if (!isNull _x) then {
-                            if (alive _x) then { dep_total_ai = dep_total_ai + 1; };
-                        };
-                    } foreach (units _grp);
-                };
-                if (side _x == civilian) then {
-                    dep_civgroups = dep_civgroups + [_x];
-                    _grp = _x;
-                    {
-                        if (!isNull _x) then {
-                            if (alive _x) then { dep_total_civ = dep_total_civ + 1; };
-                        };
-                    } foreach (units _grp);
-                };
-            } forEach allGroups;
-            //["Total AI: %1 Total groups %2", dep_total_ai, (count dep_allgroups)] spawn dep_fnc_log;
-            dep_countunits = false;
-            
-            if (dep_total_ai >= dep_max_ai_tot) then {
-                dep_exceeded_ai_limit = true;
-                ["AI limit of %1 reached!", dep_max_ai_tot, dep_total_ai] spawn dep_fnc_log;
-            } else {
-                dep_exceeded_ai_limit = false;
+            if (side _x == dep_side) then {
+                if !(isGroupDeletedWhenEmpty _x) then { _x deleteGroupWhenEmpty true; };
+                dep_allgroups = dep_allgroups + [_x];
+                _grp = _x;
+                {
+                    if (!isNull _x) then {
+                        if (alive _x) then { dep_total_ai = dep_total_ai + 1; };
+                    };
+                } foreach (units _grp);
             };
-            if ((count dep_allgroups) >= 134 || (count dep_civgroups) >= 134) then {
-                dep_exceeded_group_limit = true;
-                "Group limit of 134 reached!" spawn dep_fnc_log;
-            } else {
-                dep_exceeded_group_limit = false;
+            if (side _x == civilian) then {
+                if !(isGroupDeletedWhenEmpty _x) then { _x deleteGroupWhenEmpty true; };
+                dep_civgroups = dep_civgroups + [_x];
+                _grp = _x;
+                {
+                    if (!isNull _x) then {
+                        if (alive _x) then { dep_total_civ = dep_total_civ + 1; };
+                    };
+                } foreach (units _grp);
             };
+        } forEach allGroups;
+        //["Total AI: %1 Total groups %2", dep_total_ai, (count dep_allgroups)] spawn dep_fnc_log;
+        
+        if (dep_total_ai >= dep_max_ai_tot) then {
+            dep_exceeded_ai_limit = true;
+            ["AI limit of %1 reached!", dep_max_ai_tot, dep_total_ai] spawn dep_fnc_log;
+        } else {
+            dep_exceeded_ai_limit = false;
+        };
+        if ((count dep_allgroups) >= 134 || (count dep_civgroups) >= 134) then {
+            dep_exceeded_group_limit = true;
+            "Group limit of 134 reached!" spawn dep_fnc_log;
+            [] spawn dep_fnc_groupcleanup;
+        } else {
+            dep_exceeded_group_limit = false;
         };
         sleep 0.02;
     };
